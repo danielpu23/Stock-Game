@@ -27,10 +27,8 @@ public class GameSession {
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal initialCash;
 
-    @Column(nullable = false)
     private LocalDateTime startDate;
 
-    @Column(nullable = false)
     private LocalDateTime endDate;
 
     @Enumerated(EnumType.STRING)

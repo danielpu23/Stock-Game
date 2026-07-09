@@ -1,10 +1,12 @@
 package com.stock.stock_game.controller;
 
+import com.stock.stock_game.dto.CreateGameRequest;
 import com.stock.stock_game.model.entity.GameSession;
 import com.stock.stock_game.service.GameSessionService;
-import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
+import jakarta.validation.Valid;
+
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/games")
@@ -16,12 +18,15 @@ public class GameSessionController {
         this.service = service;
     }
 
-    @PostMapping("/create")
-    public GameSession createGame(@RequestParam Long userId,
-                                  @RequestParam String name,
-                                  @RequestParam BigDecimal initialCash) {
+    @PostMapping
+    public GameSession createGame(
+            @Valid @RequestBody CreateGameRequest request){
 
-        return service.createGame(userId, name, initialCash);
+        return service.createGame(
+            request.getUserId(),
+            request.getName(),
+            request.getInitialCash()
+        );
     }
 
     @PostMapping("/join")

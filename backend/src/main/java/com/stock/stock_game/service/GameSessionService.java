@@ -4,9 +4,9 @@ import com.stock.stock_game.model.entity.*;
 import com.stock.stock_game.model.enums.SessionStatus;
 import com.stock.stock_game.repository.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.Random;
 
 @Service
@@ -24,6 +24,7 @@ public class GameSessionService {
         this.userRepository = userRepository;
     }
 
+    @Transactional
     public GameSession createGame(Long creatorUserId, String name, BigDecimal initialCash) {
 
         User creator = userRepository.findById(creatorUserId)
@@ -32,13 +33,19 @@ public class GameSessionService {
         GameSession game = new GameSession();
         game.setName(name);
         game.setInitialCash(initialCash);
-        game.setStartDate(LocalDateTime.now());
-        game.setEndDate(LocalDateTime.now().plusDays(7));
-        game.setStatus(SessionStatus.PENDING);
+        game.setStartDate(null);
+        game.setEndDate(null);
+        game.setStatus(SessionStatus.WAITING);
         game.setInviteCode(generateInviteCode());
         game.setCreatedBy(creator);
 
-        return gameSessionRepository.save(game);
+        PlayerSession playerSession = new PlayerSession();
+        playerSession.setUser(creator);
+        playerSession.setGameSession(game);
+        playerSession.setCashBalance(initialCash);
+
+        playerSessionRepository.save(playerSession);
+        return game;
     }
 
     public void joinGame(Long userId, String inviteCode) {
