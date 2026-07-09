@@ -4,7 +4,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "player_sessions", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "game_session_id"}))
 public class PlayerSession {
