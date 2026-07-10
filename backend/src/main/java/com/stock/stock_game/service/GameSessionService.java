@@ -1,5 +1,7 @@
 package com.stock.stock_game.service;
 
+import com.stock.stock_game.dto.response.GameResponse;
+import com.stock.stock_game.dto.response.PlayerResponse;
 import com.stock.stock_game.model.entity.*;
 import com.stock.stock_game.model.enums.SessionStatus;
 import com.stock.stock_game.repository.*;
@@ -7,7 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
 public class GameSessionService {
@@ -84,5 +88,46 @@ public class GameSessionService {
         }
 
         return code.toString();
+    }
+
+    public GameResponse getGame(Long gameId) {
+
+        GameSession game = gameSessionRepository.findById(gameId)
+                .orElseThrow(() -> new RuntimeException("Game not found"));
+
+
+        List<PlayerSession> playerSessions =
+                playerSessionRepository.findByGameSession(game);
+
+
+        List<PlayerResponse> players =
+                playerSessions.stream()
+                .map(playerSession -> {
+
+                    PlayerResponse player = new PlayerResponse();
+
+                    player.setUsername(
+                        playerSession.getUser().getUsername()
+                    );
+
+                    player.setCashBalance(
+                        playerSession.getCashBalance()
+                    );
+
+                    return player;
+
+                })
+                .collect(Collectors.toList());
+
+
+        GameResponse response = new GameResponse();
+
+        response.setId(game.getId());
+        response.setName(game.getName());
+        response.setInviteCode(game.getInviteCode());
+        response.setStatus(game.getStatus());
+        response.setPlayers(players);
+
+        return response;
     }
 }

@@ -1,7 +1,8 @@
 package com.stock.stock_game.controller;
 
-import com.stock.stock_game.dto.CreateGameRequest;
-import com.stock.stock_game.dto.JoinGameRequest;
+import com.stock.stock_game.dto.request.CreateGameRequest;
+import com.stock.stock_game.dto.request.JoinGameRequest;
+import com.stock.stock_game.dto.response.GameResponse;
 import com.stock.stock_game.model.entity.GameSession;
 import com.stock.stock_game.service.GameSessionService;
 
@@ -39,5 +40,10 @@ public class GameSessionController {
             request.getInviteCode());
 
         return "Joined successfully";
+    }
+
+    @GetMapping("/{id}")
+    public GameResponse getGame(@PathVariable Long id) {
+        return service.getGame(id);
     }
 }

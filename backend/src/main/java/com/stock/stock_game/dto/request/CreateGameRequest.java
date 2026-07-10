@@ -1,4 +1,4 @@
-package com.stock.stock_game.dto;
+package com.stock.stock_game.dto.request;
 
 import java.math.BigDecimal;
 
