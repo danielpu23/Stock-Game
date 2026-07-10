@@ -38,7 +38,8 @@ public class GameSessionService {
         game.setStatus(SessionStatus.WAITING);
         game.setInviteCode(generateInviteCode());
         game.setCreatedBy(creator);
-
+        gameSessionRepository.save(game);
+        
         PlayerSession playerSession = new PlayerSession();
         playerSession.setUser(creator);
         playerSession.setGameSession(game);
@@ -55,6 +56,14 @@ public class GameSessionService {
 
         GameSession game = gameSessionRepository.findByInviteCode(inviteCode)
                 .orElseThrow(() -> new RuntimeException("Game not found"));
+        
+        if (playerSessionRepository.existsByUserAndGameSession(user, game)) {
+            throw new RuntimeException("Already joined");
+        }
+
+        if (game.getStatus() != SessionStatus.WAITING) {
+            throw new RuntimeException("Game already started");
+        }
 
         PlayerSession playerSession = new PlayerSession();
         playerSession.setUser(user);

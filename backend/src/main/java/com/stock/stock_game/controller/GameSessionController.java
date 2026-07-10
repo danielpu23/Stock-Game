@@ -1,6 +1,7 @@
 package com.stock.stock_game.controller;
 
 import com.stock.stock_game.dto.CreateGameRequest;
+import com.stock.stock_game.dto.JoinGameRequest;
 import com.stock.stock_game.model.entity.GameSession;
 import com.stock.stock_game.service.GameSessionService;
 
@@ -30,10 +31,13 @@ public class GameSessionController {
     }
 
     @PostMapping("/join")
-    public String joinGame(@RequestParam Long userId,
-                           @RequestParam String inviteCode) {
+    public String joinGame(
+            @RequestBody JoinGameRequest request) {
 
-        service.joinGame(userId, inviteCode);
+        service.joinGame(
+            request.getUserId(),
+            request.getInviteCode());
+
         return "Joined successfully";
     }
 }
