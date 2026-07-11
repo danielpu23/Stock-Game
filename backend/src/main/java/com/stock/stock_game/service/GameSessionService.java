@@ -1,7 +1,9 @@
 package com.stock.stock_game.service;
 
 import com.stock.stock_game.dto.response.GameResponse;
+import com.stock.stock_game.dto.response.GameStateResponse;
 import com.stock.stock_game.dto.response.PlayerResponse;
+import com.stock.stock_game.dto.response.PlayerStateResponse;
 import com.stock.stock_game.model.entity.*;
 import com.stock.stock_game.model.enums.SessionStatus;
 import com.stock.stock_game.repository.*;
@@ -9,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -125,6 +128,62 @@ public class GameSessionService {
         response.setId(game.getId());
         response.setName(game.getName());
         response.setInviteCode(game.getInviteCode());
+        response.setStatus(game.getStatus());
+        response.setPlayers(players);
+
+        return response;
+    }
+
+    public GameResponse startGame(Long gameId) {
+
+        GameSession game = gameSessionRepository.findById(gameId)
+                .orElseThrow(() -> new RuntimeException("Game not found"));
+
+        if (game.getStatus() != SessionStatus.WAITING) {
+            throw new RuntimeException("Game already started");
+        }
+
+        game.setStatus(SessionStatus.IN_PROGRESS);
+        game.setStartDate(LocalDateTime.now());
+
+        gameSessionRepository.save(game);
+        return getGame(game.getId());
+    }
+
+    public GameStateResponse getGameState(Long gameId) {
+
+        GameSession game = gameSessionRepository.findById(gameId)
+                .orElseThrow(() -> new RuntimeException("Game not found"));
+
+        List<PlayerSession> playerSessions =
+                playerSessionRepository.findByGameSession(game);
+
+        List<PlayerStateResponse> players =
+                playerSessions.stream()
+                .map(playerSession -> {
+
+                    PlayerStateResponse player = new PlayerStateResponse();
+
+                    player.setUsername(
+                        playerSession.getUser().getUsername()
+                    );
+
+                    player.setCashBalance(
+                        playerSession.getCashBalance()
+                    );
+                    // temporary until StockHolding exists
+                    player.setPortfolioValue(
+                        playerSession.getCashBalance()
+                    );
+
+                    return player;
+
+                })
+                .collect(Collectors.toList());
+
+        GameStateResponse response = new GameStateResponse();
+
+        response.setGameId(game.getId());
         response.setStatus(game.getStatus());
         response.setPlayers(players);
 

@@ -3,6 +3,7 @@ package com.stock.stock_game.controller;
 import com.stock.stock_game.dto.request.CreateGameRequest;
 import com.stock.stock_game.dto.request.JoinGameRequest;
 import com.stock.stock_game.dto.response.GameResponse;
+import com.stock.stock_game.dto.response.GameStateResponse;
 import com.stock.stock_game.model.entity.GameSession;
 import com.stock.stock_game.service.GameSessionService;
 
@@ -45,5 +46,15 @@ public class GameSessionController {
     @GetMapping("/{id}")
     public GameResponse getGame(@PathVariable Long id) {
         return service.getGame(id);
+    }
+
+    @PostMapping("/{id}/start")
+    public GameResponse startGame(@PathVariable Long id) {
+        return service.startGame(id);
+    }
+
+    @GetMapping("/{id}/state")
+    public GameStateResponse getGameState(@PathVariable Long id) {
+        return service.getGameState(id);
     }
 }
