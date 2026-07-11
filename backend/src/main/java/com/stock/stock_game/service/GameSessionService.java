@@ -2,6 +2,7 @@ package com.stock.stock_game.service;
 
 import com.stock.stock_game.dto.response.GameResponse;
 import com.stock.stock_game.dto.response.GameStateResponse;
+import com.stock.stock_game.dto.response.HoldingResponse;
 import com.stock.stock_game.dto.response.PlayerResponse;
 import com.stock.stock_game.dto.response.PlayerStateResponse;
 import com.stock.stock_game.model.entity.*;
@@ -22,13 +23,16 @@ public class GameSessionService {
     private final GameSessionRepository gameSessionRepository;
     private final PlayerSessionRepository playerSessionRepository;
     private final UserRepository userRepository;
+    private final StockHoldingRepository stockHoldingRepository;
 
     public GameSessionService(GameSessionRepository gameSessionRepository,
                               PlayerSessionRepository playerSessionRepository,
-                              UserRepository userRepository) {
+                              UserRepository userRepository,
+                              StockHoldingRepository stockHoldingRepository) {
         this.gameSessionRepository = gameSessionRepository;
         this.playerSessionRepository = playerSessionRepository;
         this.userRepository = userRepository;
+        this.stockHoldingRepository = stockHoldingRepository;
     }
 
     @Transactional
@@ -98,30 +102,22 @@ public class GameSessionService {
         GameSession game = gameSessionRepository.findById(gameId)
                 .orElseThrow(() -> new RuntimeException("Game not found"));
 
-
         List<PlayerSession> playerSessions =
                 playerSessionRepository.findByGameSession(game);
-
 
         List<PlayerResponse> players =
                 playerSessions.stream()
                 .map(playerSession -> {
-
                     PlayerResponse player = new PlayerResponse();
-
                     player.setUsername(
                         playerSession.getUser().getUsername()
                     );
-
                     player.setCashBalance(
                         playerSession.getCashBalance()
                     );
-
                     return player;
-
                 })
                 .collect(Collectors.toList());
-
 
         GameResponse response = new GameResponse();
 
@@ -161,32 +157,58 @@ public class GameSessionService {
         List<PlayerStateResponse> players =
                 playerSessions.stream()
                 .map(playerSession -> {
-
                     PlayerStateResponse player = new PlayerStateResponse();
-
                     player.setUsername(
-                        playerSession.getUser().getUsername()
+                            playerSession.getUser().getUsername()
                     );
-
                     player.setCashBalance(
-                        playerSession.getCashBalance()
+                            playerSession.getCashBalance()
                     );
-                    // temporary until StockHolding exists
+                    /*
+                    * Get player's stock holdings
+                    */
+                    List<StockHolding> holdings =
+                            stockHoldingRepository.findByPlayerSession(playerSession);
+
+                    List<HoldingResponse> holdingResponses =
+                            holdings.stream()
+                            .map(holding -> {
+                                HoldingResponse response =
+                                        new HoldingResponse();
+                                response.setSymbol(
+                                        holding.getSymbol()
+                                );
+                                response.setQuantity(
+                                        holding.getQuantity()
+                                );
+                                response.setAveragePrice(
+                                        holding.getAveragePrice()
+                                );
+                                return response;
+                            })
+                            .collect(Collectors.toList());
+
+                    player.setHoldings(holdingResponses);
+
+
+                    /*
+                    * Temporary:
+                    * portfolio value = cash only
+                    *
+                    * Later:
+                    * cash + live stock prices
+                    */
                     player.setPortfolioValue(
-                        playerSession.getCashBalance()
+                            playerSession.getCashBalance()
                     );
-
                     return player;
-
                 })
                 .collect(Collectors.toList());
 
         GameStateResponse response = new GameStateResponse();
-
         response.setGameId(game.getId());
         response.setStatus(game.getStatus());
         response.setPlayers(players);
-
         return response;
     }
 }
