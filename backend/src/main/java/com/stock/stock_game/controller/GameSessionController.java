@@ -1,5 +1,6 @@
 package com.stock.stock_game.controller;
 
+import com.stock.stock_game.dto.request.BuyStockRequest;
 import com.stock.stock_game.dto.request.CreateGameRequest;
 import com.stock.stock_game.dto.request.JoinGameRequest;
 import com.stock.stock_game.dto.response.GameResponse;
@@ -56,5 +57,19 @@ public class GameSessionController {
     @GetMapping("/{id}/state")
     public GameStateResponse getGameState(@PathVariable Long id) {
         return service.getGameState(id);
+    }
+
+    @PostMapping("/{id}/buy")
+    public String buyStock(
+            @PathVariable Long id,
+            @RequestBody BuyStockRequest request
+    ) {
+        service.buyStock(
+                id,
+                request.getUserId(),
+                request.getSymbol(),
+                request.getQuantity()
+        );
+        return "Stock purchased successfully";
     }
 }

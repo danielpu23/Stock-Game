@@ -24,15 +24,18 @@ public class GameSessionService {
     private final PlayerSessionRepository playerSessionRepository;
     private final UserRepository userRepository;
     private final StockHoldingRepository stockHoldingRepository;
+    private final StockPriceService stockPriceService;
 
     public GameSessionService(GameSessionRepository gameSessionRepository,
                               PlayerSessionRepository playerSessionRepository,
                               UserRepository userRepository,
-                              StockHoldingRepository stockHoldingRepository) {
+                              StockHoldingRepository stockHoldingRepository,
+                              StockPriceService stockPriceService) {
         this.gameSessionRepository = gameSessionRepository;
         this.playerSessionRepository = playerSessionRepository;
         this.userRepository = userRepository;
         this.stockHoldingRepository = stockHoldingRepository;
+        this.stockPriceService = stockPriceService;
     }
 
     @Transactional
@@ -210,5 +213,77 @@ public class GameSessionService {
         response.setStatus(game.getStatus());
         response.setPlayers(players);
         return response;
+    }
+
+    @Transactional
+    public void buyStock(
+            Long gameId,
+            Long userId,
+            String symbol,
+            Integer quantity
+    ) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> 
+                    new RuntimeException("User not found")
+                );
+        GameSession game =
+                gameSessionRepository.findById(gameId)
+                .orElseThrow(() ->
+                    new RuntimeException("Game not found")
+                );
+
+        PlayerSession playerSession =
+                playerSessionRepository
+                .findByUserAndGameSession(user, game)
+                .orElseThrow(() ->
+                    new RuntimeException("Player not in game")
+                );
+
+        BigDecimal price =
+                stockPriceService.getPrice(symbol);
+
+        BigDecimal cost =
+                price.multiply(
+                    BigDecimal.valueOf(quantity)
+                );
+
+        if(playerSession.getCashBalance()
+                .compareTo(cost) < 0){
+
+            throw new RuntimeException(
+                    "Not enough cash"
+            );
+        }
+
+        playerSession.setCashBalance(
+                playerSession.getCashBalance()
+                .subtract(cost)
+        );
+
+        playerSessionRepository.save(playerSession);
+
+        StockHolding holding =
+                stockHoldingRepository
+                .findByPlayerSessionAndSymbol(
+                        playerSession,
+                        symbol
+                )
+                .orElse(null);
+
+        if(holding == null){
+            holding = new StockHolding();
+            holding.setPlayerSession(playerSession);
+            holding.setSymbol(symbol);
+            holding.setQuantity(quantity);
+            holding.setAveragePrice(price);
+        }
+        else {
+            int newQuantity =
+                    holding.getQuantity()
+                    + quantity;
+            holding.setQuantity(newQuantity);
+            holding.setAveragePrice(price);
+        }
+        stockHoldingRepository.save(holding);
     }
 }
