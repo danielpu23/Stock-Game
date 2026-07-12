@@ -3,6 +3,7 @@ package com.stock.stock_game.service;
 import com.stock.stock_game.dto.response.GameResponse;
 import com.stock.stock_game.dto.response.GameStateResponse;
 import com.stock.stock_game.dto.response.HoldingResponse;
+import com.stock.stock_game.dto.response.LeaderboardResponse;
 import com.stock.stock_game.dto.response.PlayerResponse;
 import com.stock.stock_game.dto.response.PlayerStateResponse;
 import com.stock.stock_game.dto.response.TransactionResponse;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
@@ -172,9 +174,6 @@ public class GameSessionService {
                     player.setCashBalance(
                             playerSession.getCashBalance()
                     );
-                    /*
-                    * Get player's stock holdings
-                    */
                     List<StockHolding> holdings =
                             stockHoldingRepository.findByPlayerSession(playerSession);
 
@@ -198,16 +197,8 @@ public class GameSessionService {
 
                     player.setHoldings(holdingResponses);
 
-
-                    /*
-                    * Temporary:
-                    * portfolio value = cash only
-                    *
-                    * Later:
-                    * cash + live stock prices
-                    */
                     player.setPortfolioValue(
-                            playerSession.getCashBalance()
+                        calculatePortfolioValue(playerSession)
                     );
                     return player;
                 })
@@ -283,11 +274,28 @@ public class GameSessionService {
             holding.setAveragePrice(price);
         }
         else {
-            int newQuantity =
-                    holding.getQuantity()
-                    + quantity;
-            holding.setQuantity(newQuantity);
-            holding.setAveragePrice(price);
+            int oldQuantity = holding.getQuantity();
+            BigDecimal oldTotal =
+                holding.getAveragePrice()
+                .multiply(
+                        BigDecimal.valueOf(oldQuantity)
+                );
+            BigDecimal newTotal =
+                price.multiply(
+                        BigDecimal.valueOf(quantity)
+                );
+            int totalQuantity =
+                oldQuantity + quantity;
+                BigDecimal newAveragePrice =
+                        oldTotal
+                        .add(newTotal)
+                        .divide(
+                                BigDecimal.valueOf(totalQuantity),
+                                2,
+                                RoundingMode.HALF_UP
+                        );
+                holding.setQuantity(totalQuantity);
+                holding.setAveragePrice(newAveragePrice);
         }
         stockHoldingRepository.save(holding);
 
@@ -381,4 +389,64 @@ public class GameSessionService {
 
         transactionRepository.save(transaction);
   }
+
+  private BigDecimal calculatePortfolioValue(PlayerSession playerSession) {
+
+        List<StockHolding> holdings =
+                stockHoldingRepository.findByPlayerSession(playerSession);
+        BigDecimal total = BigDecimal.ZERO;
+
+        for (StockHolding holding : holdings) {
+                BigDecimal currentPrice =
+                        stockPriceService.getPrice(holding.getSymbol());
+                BigDecimal holdingValue =
+                        currentPrice.multiply(
+                        BigDecimal.valueOf(holding.getQuantity())
+                        );
+                total = total.add(holdingValue);
+        }
+        return total;
+  }
+
+  public List<LeaderboardResponse> getLeaderboard(Long gameId) {
+
+        GameSession game =
+                gameSessionRepository.findById(gameId)
+                .orElseThrow(() ->
+                        new RuntimeException("Game not found")
+                );
+                
+        List<PlayerSession> players =
+                playerSessionRepository
+                .findByGameSession(game);
+
+        return players.stream()
+                .map(playerSession -> {
+                        BigDecimal holdingsValue =
+                                calculatePortfolioValue(playerSession);
+                        BigDecimal cash =
+                                playerSession.getCashBalance();
+                        LeaderboardResponse response =
+                                new LeaderboardResponse();
+                        response.setUsername(
+                                playerSession
+                                .getUser()
+                                .getUsername()
+                        );
+                        response.setCashBalance(cash);
+                        response.setHoldingsValue(
+                                holdingsValue
+                        );
+                        response.setTotalValue(
+                                cash.add(holdingsValue)
+                        );
+                        return response;
+                })
+                .sorted(
+                        (a,b) ->
+                        b.getTotalValue()
+                        .compareTo(a.getTotalValue())
+                )
+                .collect(Collectors.toList());
+        }
 }

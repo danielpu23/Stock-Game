@@ -6,6 +6,7 @@ import com.stock.stock_game.dto.request.JoinGameRequest;
 import com.stock.stock_game.dto.request.SellStockRequest;
 import com.stock.stock_game.dto.response.GameResponse;
 import com.stock.stock_game.dto.response.GameStateResponse;
+import com.stock.stock_game.dto.response.LeaderboardResponse;
 import com.stock.stock_game.dto.response.TransactionResponse;
 import com.stock.stock_game.model.entity.GameSession;
 import com.stock.stock_game.service.GameSessionService;
@@ -96,5 +97,12 @@ public class GameSessionController {
         );
 
         return "Stock sold successfully";
+    }
+
+    @GetMapping("/{id}/leaderboard")
+    public List<LeaderboardResponse> getLeaderboard(
+            @PathVariable Long id
+    ) {
+        return service.getLeaderboard(id);
     }
 }
