@@ -8,6 +8,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.stock.stock_game.model.enums.TransactionType;
 
 @Getter
 @Setter
@@ -26,8 +27,9 @@ public class Transaction {
     @Column(nullable=false)
     private String symbol;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable=false)
-    private String type;
+    private TransactionType type;
 
     @Column(nullable=false)
     private Integer quantity;

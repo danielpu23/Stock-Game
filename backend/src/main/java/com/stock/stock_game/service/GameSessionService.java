@@ -5,8 +5,10 @@ import com.stock.stock_game.dto.response.GameStateResponse;
 import com.stock.stock_game.dto.response.HoldingResponse;
 import com.stock.stock_game.dto.response.PlayerResponse;
 import com.stock.stock_game.dto.response.PlayerStateResponse;
+import com.stock.stock_game.dto.response.TransactionResponse;
 import com.stock.stock_game.model.entity.*;
 import com.stock.stock_game.model.enums.SessionStatus;
+import com.stock.stock_game.model.enums.TransactionType;
 import com.stock.stock_game.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,17 +27,20 @@ public class GameSessionService {
     private final UserRepository userRepository;
     private final StockHoldingRepository stockHoldingRepository;
     private final StockPriceService stockPriceService;
+    private final TransactionRepository transactionRepository;
 
     public GameSessionService(GameSessionRepository gameSessionRepository,
                               PlayerSessionRepository playerSessionRepository,
                               UserRepository userRepository,
                               StockHoldingRepository stockHoldingRepository,
-                              StockPriceService stockPriceService) {
+                              StockPriceService stockPriceService,
+                              TransactionRepository transactionRepository) {
         this.gameSessionRepository = gameSessionRepository;
         this.playerSessionRepository = playerSessionRepository;
         this.userRepository = userRepository;
         this.stockHoldingRepository = stockHoldingRepository;
         this.stockPriceService = stockPriceService;
+        this.transactionRepository = transactionRepository;
     }
 
     @Transactional
@@ -285,5 +290,95 @@ public class GameSessionService {
             holding.setAveragePrice(price);
         }
         stockHoldingRepository.save(holding);
+
+        Transaction transaction = new Transaction();
+        transaction.setPlayerSession(playerSession);
+        transaction.setSymbol(symbol);
+        transaction.setType(TransactionType.BUY);
+        transaction.setQuantity(quantity);
+        transaction.setPrice(price);
+        transaction.setCreatedAt(LocalDateTime.now());
+        transactionRepository.save(transaction);
     }
+
+    public List<TransactionResponse> getTransactions(Long playerSessionId) {
+
+        PlayerSession playerSession = playerSessionRepository.findById(playerSessionId)
+                .orElseThrow(() -> new RuntimeException("Player session not found"));
+
+        List<Transaction> transactions =
+                transactionRepository.findByPlayerSession(playerSession);
+
+        return transactions.stream()
+                .map(transaction -> {
+                        TransactionResponse response = new TransactionResponse();
+                        response.setId(transaction.getId());
+                        response.setSymbol(transaction.getSymbol());
+                        response.setQuantity(transaction.getQuantity());
+                        response.setPrice(transaction.getPrice());
+                        response.setType(transaction.getType());
+                        response.setCreatedAt(transaction.getCreatedAt());
+                        return response;
+                })
+                .toList();
+        }
+
+   @Transactional
+   public void sellStock(
+                Long gameId,
+                Long userId,
+                String symbol,
+                Integer quantity) {
+
+        GameSession game = gameSessionRepository.findById(gameId)
+                .orElseThrow(() -> new RuntimeException("Game not found"));
+
+        PlayerSession playerSession =
+                playerSessionRepository.findByUserAndGameSession(
+                        userRepository.findById(userId)
+                                .orElseThrow(() -> new RuntimeException("User not found")),
+                        game)
+                .orElseThrow(() -> new RuntimeException("Player not found"));
+
+        StockHolding holding =
+                stockHoldingRepository.findByPlayerSessionAndSymbol(
+                        playerSession,
+                        symbol)
+                .orElseThrow(() -> new RuntimeException("Stock not owned"));
+
+        if (holding.getQuantity() < quantity) {
+                throw new RuntimeException("Not enough shares");
+        }
+
+        BigDecimal currentPrice = stockPriceService.getPrice(symbol);
+
+        holding.setQuantity(
+                holding.getQuantity() - quantity
+        );
+
+        if (holding.getQuantity() == 0) {
+                stockHoldingRepository.delete(holding);
+        } else {
+                stockHoldingRepository.save(holding);
+        }
+
+        playerSession.setCashBalance(
+                playerSession.getCashBalance().add(
+                        currentPrice.multiply(BigDecimal.valueOf(quantity))
+                )
+        );
+
+        playerSessionRepository.save(playerSession);
+
+        Transaction transaction = new Transaction();
+
+        transaction.setPlayerSession(playerSession);
+        transaction.setSymbol(symbol);
+        transaction.setQuantity(quantity);
+        transaction.setPrice(currentPrice);
+        transaction.setType(TransactionType.SELL);
+        transaction.setCreatedAt(LocalDateTime.now());
+
+        transactionRepository.save(transaction);
+  }
 }

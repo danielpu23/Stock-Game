@@ -3,12 +3,16 @@ package com.stock.stock_game.controller;
 import com.stock.stock_game.dto.request.BuyStockRequest;
 import com.stock.stock_game.dto.request.CreateGameRequest;
 import com.stock.stock_game.dto.request.JoinGameRequest;
+import com.stock.stock_game.dto.request.SellStockRequest;
 import com.stock.stock_game.dto.response.GameResponse;
 import com.stock.stock_game.dto.response.GameStateResponse;
+import com.stock.stock_game.dto.response.TransactionResponse;
 import com.stock.stock_game.model.entity.GameSession;
 import com.stock.stock_game.service.GameSessionService;
 
 import jakarta.validation.Valid;
+
+import java.util.List;
 
 import org.springframework.web.bind.annotation.*;
 
@@ -71,5 +75,26 @@ public class GameSessionController {
                 request.getQuantity()
         );
         return "Stock purchased successfully";
+    }
+
+    @GetMapping("/players/{playerSessionId}/transactions")
+    public List<TransactionResponse> getTransactions(
+            @PathVariable Long playerSessionId) {
+        return service.getTransactions(playerSessionId);
+    }
+
+    @PostMapping("/{id}/sell")
+    public String sellStock(
+            @PathVariable Long id,
+            @RequestBody SellStockRequest request) {
+
+        service.sellStock(
+                id,
+                request.getUserId(),
+                request.getSymbol(),
+                request.getQuantity()
+        );
+
+        return "Stock sold successfully";
     }
 }
