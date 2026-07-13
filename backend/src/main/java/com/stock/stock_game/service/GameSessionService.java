@@ -1,6 +1,7 @@
 package com.stock.stock_game.service;
 
 import com.stock.stock_game.dto.response.GameResponse;
+import com.stock.stock_game.dto.response.GameResultsResponse;
 import com.stock.stock_game.dto.response.GameStateResponse;
 import com.stock.stock_game.dto.response.HoldingResponse;
 import com.stock.stock_game.dto.response.LeaderboardResponse;
@@ -235,6 +236,10 @@ public class GameSessionService {
                     new RuntimeException("Player not in game")
                 );
 
+        if (game.getStatus() != SessionStatus.IN_PROGRESS) {
+                throw new RuntimeException("Game is not in progress");
+        }
+
         BigDecimal price =
                 stockPriceService.getPrice(symbol);
 
@@ -348,6 +353,10 @@ public class GameSessionService {
                         game)
                 .orElseThrow(() -> new RuntimeException("Player not found"));
 
+        if (game.getStatus() != SessionStatus.IN_PROGRESS) {
+                throw new RuntimeException("Game is not in progress");
+        }
+
         StockHolding holding =
                 stockHoldingRepository.findByPlayerSessionAndSymbol(
                         playerSession,
@@ -449,4 +458,54 @@ public class GameSessionService {
                 )
                 .collect(Collectors.toList());
         }
+
+  @Transactional
+  public GameResponse finishGame(Long gameId) {
+
+        GameSession game = gameSessionRepository.findById(gameId)
+                .orElseThrow(() -> new RuntimeException("Game not found"));
+
+        if (game.getStatus() != SessionStatus.IN_PROGRESS) {
+                throw new RuntimeException("Game is not in progress");
+        }
+
+        game.setStatus(SessionStatus.FINISHED);
+        game.setEndDate(LocalDateTime.now());
+
+        gameSessionRepository.save(game);
+
+        return getGame(gameId);
+  }
+
+  public GameResultsResponse getGameResults(Long gameId) {
+
+        GameSession game = gameSessionRepository.findById(gameId)
+                .orElseThrow(() -> new RuntimeException("Game not found"));
+
+        if (game.getStatus() != SessionStatus.FINISHED) {
+                throw new RuntimeException("Game has not finished");
+        }
+
+        List<LeaderboardResponse> leaderboard =
+                getLeaderboard(gameId);
+
+        GameResultsResponse response =
+                new GameResultsResponse();
+
+        response.setGameId(game.getId());
+        response.setName(game.getName());
+        response.setStatus(game.getStatus());
+        response.setStartDate(game.getStartDate());
+        response.setEndDate(game.getEndDate());
+
+        response.setLeaderboard(leaderboard);
+
+        if (!leaderboard.isEmpty()) {
+                response.setWinner(
+                        leaderboard.get(0).getUsername()
+                );
+        }
+
+        return response;
+  }
 }

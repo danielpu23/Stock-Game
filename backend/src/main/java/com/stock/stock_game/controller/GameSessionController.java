@@ -5,6 +5,7 @@ import com.stock.stock_game.dto.request.CreateGameRequest;
 import com.stock.stock_game.dto.request.JoinGameRequest;
 import com.stock.stock_game.dto.request.SellStockRequest;
 import com.stock.stock_game.dto.response.GameResponse;
+import com.stock.stock_game.dto.response.GameResultsResponse;
 import com.stock.stock_game.dto.response.GameStateResponse;
 import com.stock.stock_game.dto.response.LeaderboardResponse;
 import com.stock.stock_game.dto.response.TransactionResponse;
@@ -104,5 +105,16 @@ public class GameSessionController {
             @PathVariable Long id
     ) {
         return service.getLeaderboard(id);
+    }
+
+    @PostMapping("/{id}/finish")
+    public GameResponse finishGame(@PathVariable Long id) {
+        return service.finishGame(id);
+    }
+
+    @GetMapping("/{id}/results")
+    public GameResultsResponse getGameResults(
+            @PathVariable Long id) {
+        return service.getGameResults(id);
     }
 }
