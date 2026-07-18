@@ -1,21 +1,28 @@
-import { useEffect } from "react";
-import { getGame } from "./api/gameApi";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-function App() {
-  useEffect(() => {
-    async function loadGame() {
-      try {
-        const game = await getGame(1);
-        console.log(game);
-      } catch (error) {
-        console.error(error);
-      }
-    }
+import HomePage from "./pages/HomePage";
+import CreateGamePage from "./pages/CreateGamePage";
+import JoinGamePage from "./pages/JoinGamePage";
+import LobbyPage from "./pages/LobbyPage";
+import GamePage from "./pages/GamePage";
+import ResultsPage from "./pages/ResultsPage";
 
-    loadGame();
-  }, []);
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
 
-  return <h1>Stock Game</h1>;
+        <Route path="/create" element={<CreateGamePage />} />
+
+        <Route path="/join" element={<JoinGamePage />} />
+
+        <Route path="/lobby/:gameId" element={<LobbyPage />} />
+
+        <Route path="/game/:gameId" element={<GamePage />} />
+
+        <Route path="/results/:gameId" element={<ResultsPage />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
-
-export default App;
