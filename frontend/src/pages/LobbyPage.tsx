@@ -16,18 +16,22 @@ export default function LobbyPage() {
 
   const GAME_ID = Number(gameId);
 
-  useEffect(() => {
-    async function loadGame() {
-      try {
-        const response = await getGame(GAME_ID);
+  async function loadGame() {
+    try {
+      const response = await getGame(GAME_ID);
 
-        setGame(response);
-      } catch (error) {
-        console.error(error);
-      }
+      setGame(response);
+    } catch (error) {
+      console.error(error);
     }
+  }
 
+  useEffect(() => {
     loadGame();
+
+    const interval = setInterval(loadGame, 3000);
+
+    return () => clearInterval(interval);
   }, [GAME_ID]);
 
   async function handleStartGame() {
@@ -50,9 +54,13 @@ export default function LobbyPage() {
 
       <h2>Lobby</h2>
 
-      <p>
-        <strong>Invite Code:</strong> {game.inviteCode}
-      </p>
+      <div>
+        <h3>Invite Code</h3>
+
+        <p>
+          <strong>{game.inviteCode}</strong>
+        </p>
+      </div>
 
       <p>
         <strong>Status:</strong> {game.status}
@@ -69,9 +77,11 @@ export default function LobbyPage() {
         }))}
       />
 
-      {game.status === "WAITING" && (
-        <button onClick={handleStartGame}>Start Game</button>
-      )}
+      <br />
+
+      <button onClick={handleStartGame} disabled={game.status !== "WAITING"}>
+        Start Game
+      </button>
 
       {game.status !== "WAITING" && <p>Game has already started.</p>}
     </div>
