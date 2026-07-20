@@ -1,9 +1,13 @@
 package com.stock.stock_game.service;
 
+import java.util.Optional;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.stock.stock_game.dto.request.LoginRequest;
 import com.stock.stock_game.dto.request.RegisterRequest;
+import com.stock.stock_game.dto.response.LoginResponse;
 import com.stock.stock_game.dto.response.RegisterResponse;
 import com.stock.stock_game.model.entity.User;
 import com.stock.stock_game.repository.UserRepository;
@@ -49,5 +53,25 @@ public class AuthService {
                 savedUser.getUsername(),
                 savedUser.getEmail()
        );
+    }
+    
+    public LoginResponse login(LoginRequest request) {
+        Optional<User> optionalUser =
+                userRepository.findByUsername(request.getUsername());
+
+        if (optionalUser.isEmpty()) {
+            throw new RuntimeException("Invalid username or password");
+        }
+        User user = optionalUser.get();
+        if (!passwordEncoder.matches(
+                request.getPassword(),
+                user.getPasswordHash()
+        )) {
+            throw new RuntimeException("Invalid username or password");
+        }
+        return new LoginResponse(
+                user.getId(),
+                user.getUsername()
+        );
     }
 }
