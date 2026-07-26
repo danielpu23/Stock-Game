@@ -7,8 +7,6 @@ import lombok.Setter;
 @Setter
 public class BuyStockRequest {
 
-    private Long userId;
-
     private String symbol;
 
     private Integer quantity;

@@ -12,9 +12,6 @@ import lombok.Setter;
 @Setter
 public class CreateGameRequest {
 
-    @NotNull
-    private Long userId;
-
     @NotBlank
     private String name;
 

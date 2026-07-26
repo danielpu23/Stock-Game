@@ -8,7 +8,6 @@ export default function CreateGamePage() {
 
   const [name, setName] = useState("");
   const [initialCash, setInitialCash] = useState(10000);
-  const [userId, setUserId] = useState(1);
 
   async function handleCreateGame() {
     if (name.trim() === "") {
@@ -22,7 +21,7 @@ export default function CreateGamePage() {
     }
 
     try {
-      const game = await createGame(userId, name, initialCash);
+      const game = await createGame(name, initialCash);
 
       navigate(`/games/${game.id}/lobby`);
     } catch (error) {
@@ -59,20 +58,6 @@ export default function CreateGamePage() {
           type="number"
           value={initialCash}
           onChange={(e) => setInitialCash(Number(e.target.value))}
-        />
-      </div>
-
-      <br />
-
-      <div>
-        <label>User ID</label>
-
-        <br />
-
-        <input
-          type="number"
-          value={userId}
-          onChange={(e) => setUserId(Number(e.target.value))}
         />
       </div>
 

@@ -11,6 +11,7 @@ import com.stock.stock_game.dto.response.LeaderboardResponse;
 import com.stock.stock_game.dto.response.TransactionResponse;
 import com.stock.stock_game.model.entity.GameSession;
 import com.stock.stock_game.service.GameSessionService;
+import com.stock.stock_game.service.CurrentUserService;
 
 import jakarta.validation.Valid;
 
@@ -23,9 +24,11 @@ import org.springframework.web.bind.annotation.*;
 public class GameSessionController {
 
     private final GameSessionService service;
+    private final CurrentUserService currentUserService;
 
-    public GameSessionController(GameSessionService service) {
+    public GameSessionController(GameSessionService service, CurrentUserService currentUserService) {
         this.service = service;
+        this.currentUserService = currentUserService;
     }
 
     @PostMapping
@@ -33,7 +36,7 @@ public class GameSessionController {
             @Valid @RequestBody CreateGameRequest request){
 
         return service.createGame(
-            request.getUserId(),
+            currentUserService.getCurrentUser().getId(),
             request.getName(),
             request.getInitialCash()
         );
@@ -44,7 +47,7 @@ public class GameSessionController {
             @RequestBody JoinGameRequest request) {
 
         service.joinGame(
-            request.getUserId(),
+            currentUserService.getCurrentUser().getId(),
             request.getInviteCode());
 
         return "Joined successfully";
@@ -72,7 +75,7 @@ public class GameSessionController {
     ) {
         service.buyStock(
                 id,
-                request.getUserId(),
+                currentUserService.getCurrentUser().getId(),
                 request.getSymbol(),
                 request.getQuantity()
         );
@@ -92,7 +95,7 @@ public class GameSessionController {
 
         service.sellStock(
                 id,
-                request.getUserId(),
+                currentUserService.getCurrentUser().getId(),
                 request.getSymbol(),
                 request.getQuantity()
         );

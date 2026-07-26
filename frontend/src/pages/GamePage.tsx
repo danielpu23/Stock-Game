@@ -11,7 +11,6 @@ export default function GamePage() {
   const { gameId } = useParams();
 
   const GAME_ID = Number(gameId);
-  const USER_ID = 1;
 
   const [game, setGame] = useState<GameState | null>(null);
 
@@ -37,7 +36,7 @@ export default function GamePage() {
 
   async function handleBuy() {
     try {
-      await buyStock(GAME_ID, USER_ID, buySymbol.toUpperCase(), buyQuantity);
+      await buyStock(GAME_ID, buySymbol.toUpperCase(), buyQuantity);
 
       setBuySymbol("");
       setBuyQuantity(1);
@@ -50,7 +49,7 @@ export default function GamePage() {
 
   async function handleSell() {
     try {
-      await sellStock(GAME_ID, USER_ID, sellSymbol.toUpperCase(), sellQuantity);
+      await sellStock(GAME_ID, sellSymbol.toUpperCase(), sellQuantity);
 
       setSellSymbol("");
       setSellQuantity(1);

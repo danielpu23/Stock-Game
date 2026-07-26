@@ -32,12 +32,10 @@ export async function getResults(gameId: number): Promise<GameResult[]> {
 
 export async function buyStock(
   gameId: number,
-  userId: number,
   symbol: string,
   quantity: number,
 ): Promise<void> {
   await api.post(`/games/${gameId}/buy`, {
-    userId,
     symbol,
     quantity,
   });
@@ -45,20 +43,17 @@ export async function buyStock(
 
 export async function sellStock(
   gameId: number,
-  userId: number,
   symbol: string,
   quantity: number,
 ): Promise<void> {
-  await api.post(`/games/${gameId}/sell`, { userId, symbol, quantity });
+  await api.post(`/games/${gameId}/sell`, { symbol, quantity });
 }
 
 export async function createGame(
-  userId: number,
   name: string,
   initialCash: number,
 ): Promise<Game> {
   const response = await api.post("/games", {
-    userId,
     name,
     initialCash,
   });
@@ -66,11 +61,9 @@ export async function createGame(
 }
 
 export async function joinGame(
-  userId: number,
   inviteCode: string,
 ): Promise<void> {
   await api.post("/games/join", {
-    userId,
     inviteCode,
   });
 }
