@@ -8,6 +8,9 @@ import com.stock.stock_game.dto.response.LeaderboardResponse;
 import com.stock.stock_game.dto.response.PlayerResponse;
 import com.stock.stock_game.dto.response.PlayerStateResponse;
 import com.stock.stock_game.dto.response.TransactionResponse;
+import com.stock.stock_game.exception.NotFoundException;
+import com.stock.stock_game.exception.BadRequestException;
+import com.stock.stock_game.exception.ConflictException;
 import com.stock.stock_game.model.entity.*;
 import com.stock.stock_game.model.enums.SessionStatus;
 import com.stock.stock_game.model.enums.TransactionType;
@@ -50,7 +53,7 @@ public class GameSessionService {
     public GameSession createGame(Long creatorUserId, String name, BigDecimal initialCash) {
 
         User creator = userRepository.findById(creatorUserId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         GameSession game = new GameSession();
         game.setName(name);
@@ -74,17 +77,17 @@ public class GameSessionService {
     public void joinGame(Long userId, String inviteCode) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         GameSession game = gameSessionRepository.findByInviteCode(inviteCode)
-                .orElseThrow(() -> new RuntimeException("Game not found"));
+                .orElseThrow(() -> new NotFoundException("Game not found"));
         
         if (playerSessionRepository.existsByUserAndGameSession(user, game)) {
-            throw new RuntimeException("Already joined");
+            throw new ConflictException("Already joined");
         }
 
         if (game.getStatus() != SessionStatus.WAITING) {
-            throw new RuntimeException("Game already started");
+            throw new BadRequestException("Game already started");
         }
 
         PlayerSession playerSession = new PlayerSession();
@@ -111,7 +114,7 @@ public class GameSessionService {
     public GameResponse getGame(Long gameId) {
 
         GameSession game = gameSessionRepository.findById(gameId)
-                .orElseThrow(() -> new RuntimeException("Game not found"));
+                .orElseThrow(() -> new NotFoundException("Game not found"));
 
         List<PlayerSession> playerSessions =
                 playerSessionRepository.findByGameSession(game);
@@ -144,10 +147,10 @@ public class GameSessionService {
     public GameResponse startGame(Long gameId) {
 
         GameSession game = gameSessionRepository.findById(gameId)
-                .orElseThrow(() -> new RuntimeException("Game not found"));
+                .orElseThrow(() -> new NotFoundException("Game not found"));
 
         if (game.getStatus() != SessionStatus.WAITING) {
-            throw new RuntimeException("Game already started");
+            throw new BadRequestException("Game already started");
         }
 
         game.setStatus(SessionStatus.IN_PROGRESS);
@@ -160,7 +163,7 @@ public class GameSessionService {
     public GameStateResponse getGameState(Long gameId) {
 
         GameSession game = gameSessionRepository.findById(gameId)
-                .orElseThrow(() -> new RuntimeException("Game not found"));
+                .orElseThrow(() -> new NotFoundException("Game not found"));
 
         List<PlayerSession> playerSessions =
                 playerSessionRepository.findByGameSession(game);
@@ -221,23 +224,23 @@ public class GameSessionService {
     ) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> 
-                    new RuntimeException("User not found")
+                    new NotFoundException("User not found")
                 );
         GameSession game =
                 gameSessionRepository.findById(gameId)
                 .orElseThrow(() ->
-                    new RuntimeException("Game not found")
+                    new NotFoundException("Game not found")
                 );
 
         PlayerSession playerSession =
                 playerSessionRepository
                 .findByUserAndGameSession(user, game)
                 .orElseThrow(() ->
-                    new RuntimeException("Player not in game")
+                    new NotFoundException("Player not in game")
                 );
 
         if (game.getStatus() != SessionStatus.IN_PROGRESS) {
-                throw new RuntimeException("Game is not in progress");
+                throw new BadRequestException("Game is not in progress");
         }
 
         BigDecimal price =
@@ -251,7 +254,7 @@ public class GameSessionService {
         if(playerSession.getCashBalance()
                 .compareTo(cost) < 0){
 
-            throw new RuntimeException(
+            throw new BadRequestException(
                     "Not enough cash"
             );
         }
@@ -317,7 +320,7 @@ public class GameSessionService {
     public List<TransactionResponse> getTransactions(Long playerSessionId) {
 
         PlayerSession playerSession = playerSessionRepository.findById(playerSessionId)
-                .orElseThrow(() -> new RuntimeException("Player session not found"));
+                .orElseThrow(() -> new NotFoundException("Player session not found"));
 
         List<Transaction> transactions =
                 transactionRepository.findByPlayerSession(playerSession);
@@ -344,27 +347,27 @@ public class GameSessionService {
                 Integer quantity) {
 
         GameSession game = gameSessionRepository.findById(gameId)
-                .orElseThrow(() -> new RuntimeException("Game not found"));
+                .orElseThrow(() -> new NotFoundException("Game not found"));
 
         PlayerSession playerSession =
                 playerSessionRepository.findByUserAndGameSession(
                         userRepository.findById(userId)
-                                .orElseThrow(() -> new RuntimeException("User not found")),
+                                .orElseThrow(() -> new NotFoundException("User not found")),
                         game)
-                .orElseThrow(() -> new RuntimeException("Player not found"));
+                .orElseThrow(() -> new NotFoundException("Player not found"));
 
         if (game.getStatus() != SessionStatus.IN_PROGRESS) {
-                throw new RuntimeException("Game is not in progress");
+                throw new BadRequestException("Game is not in progress");
         }
 
         StockHolding holding =
                 stockHoldingRepository.findByPlayerSessionAndSymbol(
                         playerSession,
                         symbol)
-                .orElseThrow(() -> new RuntimeException("Stock not owned"));
+                .orElseThrow(() -> new NotFoundException("Stock not owned"));
 
         if (holding.getQuantity() < quantity) {
-                throw new RuntimeException("Not enough shares");
+                throw new BadRequestException("Not enough shares");
         }
 
         BigDecimal currentPrice = stockPriceService.getPrice(symbol);
@@ -422,7 +425,7 @@ public class GameSessionService {
         GameSession game =
                 gameSessionRepository.findById(gameId)
                 .orElseThrow(() ->
-                        new RuntimeException("Game not found")
+                        new NotFoundException("Game not found")
                 );
                 
         List<PlayerSession> players =
@@ -463,10 +466,10 @@ public class GameSessionService {
   public GameResponse finishGame(Long gameId) {
 
         GameSession game = gameSessionRepository.findById(gameId)
-                .orElseThrow(() -> new RuntimeException("Game not found"));
+                .orElseThrow(() -> new NotFoundException("Game not found"));
 
         if (game.getStatus() != SessionStatus.IN_PROGRESS) {
-                throw new RuntimeException("Game is not in progress");
+                throw new BadRequestException("Game is not in progress");
         }
 
         game.setStatus(SessionStatus.FINISHED);
@@ -480,10 +483,10 @@ public class GameSessionService {
   public GameResultsResponse getGameResults(Long gameId) {
 
         GameSession game = gameSessionRepository.findById(gameId)
-                .orElseThrow(() -> new RuntimeException("Game not found"));
+                .orElseThrow(() -> new NotFoundException("Game not found"));
 
         if (game.getStatus() != SessionStatus.FINISHED) {
-                throw new RuntimeException("Game has not finished");
+                throw new BadRequestException("Game has not finished");
         }
 
         List<LeaderboardResponse> leaderboard =

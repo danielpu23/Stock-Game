@@ -22,16 +22,8 @@ public class FinnhubClient {
     }
 
     public StockQuoteResponse getQuote(String symbol){
-        String url =
-                apiUrl
-                + "/quote?symbol="
-                + symbol
-                + "&token="
-                + apiKey;
+        String url = apiUrl + "/quote?symbol=" + symbol + "&token=" + apiKey;
 
-        return restTemplate.getForObject(
-                url,
-                StockQuoteResponse.class
-        );
+        return restTemplate.getForObject(url, StockQuoteResponse.class);
     }
 }

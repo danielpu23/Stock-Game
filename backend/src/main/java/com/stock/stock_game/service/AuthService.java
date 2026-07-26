@@ -9,6 +9,8 @@ import com.stock.stock_game.dto.request.LoginRequest;
 import com.stock.stock_game.dto.request.RegisterRequest;
 import com.stock.stock_game.dto.response.LoginResponse;
 import com.stock.stock_game.dto.response.RegisterResponse;
+import com.stock.stock_game.exception.ConflictException;
+import com.stock.stock_game.exception.UnauthorizedException;
 import com.stock.stock_game.model.entity.User;
 import com.stock.stock_game.repository.UserRepository;
 
@@ -19,22 +21,26 @@ public class AuthService {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final JwtService jwtService;
+
     public AuthService(
             UserRepository userRepository,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     public RegisterResponse register(RegisterRequest request) {
 
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Username already exists");
+            throw new ConflictException("Username already exists");
         }
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
+            throw new ConflictException("Email already exists");
         }
 
         User user = new User();
@@ -60,16 +66,20 @@ public class AuthService {
                 userRepository.findByUsername(request.getUsername());
 
         if (optionalUser.isEmpty()) {
-            throw new RuntimeException("Invalid username or password");
+            throw new UnauthorizedException("Invalid username or password");
         }
         User user = optionalUser.get();
         if (!passwordEncoder.matches(
                 request.getPassword(),
                 user.getPasswordHash()
         )) {
-            throw new RuntimeException("Invalid username or password");
+            throw new UnauthorizedException("Invalid username or password");
         }
+
+        String token = jwtService.generateToken(user);
+
         return new LoginResponse(
+                token,
                 user.getId(),
                 user.getUsername()
         );
