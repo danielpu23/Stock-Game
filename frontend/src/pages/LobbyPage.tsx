@@ -6,6 +6,7 @@ import type { Game } from "../types/game";
 import { getGame, startGame } from "../api/gameApi";
 
 import PlayerTable from "../components/PlayerTable";
+import Navbar from "../components/Navbar";
 
 export default function LobbyPage() {
   const [game, setGame] = useState<Game | null>(null);
@@ -38,7 +39,7 @@ export default function LobbyPage() {
     try {
       await startGame(GAME_ID);
 
-      navigate(`/game/${GAME_ID}`);
+      navigate(`/games/${GAME_ID}`);
     } catch (error) {
       console.error(error);
     }
@@ -50,40 +51,54 @@ export default function LobbyPage() {
 
   return (
     <div>
-      <h1>{game.name}</h1>
+      <Navbar />
+      <div style={{ padding: "2rem" }}>
+        <h1>{game.name}</h1>
 
-      <h2>Lobby</h2>
+        <h2>Lobby</h2>
 
-      <div>
-        <h3>Invite Code</h3>
+        <div>
+          <h3>Invite Code</h3>
+
+          <p>
+            <strong>{game.inviteCode}</strong>
+          </p>
+        </div>
 
         <p>
-          <strong>{game.inviteCode}</strong>
+          <strong>Status:</strong> {game.status}
         </p>
+
+        <h3>Players</h3>
+
+        <PlayerTable
+          players={game.players.map((player) => ({
+            username: player.username,
+            cashBalance: player.cashBalance,
+            portfolioValue: player.cashBalance,
+            holdings: [],
+          }))}
+        />
+
+        <br />
+
+        <button
+          onClick={handleStartGame}
+          disabled={game.status !== "WAITING"}
+          style={{
+            padding: "0.75rem 1.5rem",
+            backgroundColor: "#007bff",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+        >
+          Start Game
+        </button>
+
+        {game.status !== "WAITING" && <p>Game has already started.</p>}
       </div>
-
-      <p>
-        <strong>Status:</strong> {game.status}
-      </p>
-
-      <h3>Players</h3>
-
-      <PlayerTable
-        players={game.players.map((player) => ({
-          username: player.username,
-          cashBalance: player.cashBalance,
-          portfolioValue: player.cashBalance,
-          holdings: [],
-        }))}
-      />
-
-      <br />
-
-      <button onClick={handleStartGame} disabled={game.status !== "WAITING"}>
-        Start Game
-      </button>
-
-      {game.status !== "WAITING" && <p>Game has already started.</p>}
     </div>
   );
 }

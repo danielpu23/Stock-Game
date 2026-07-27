@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login, register } from "../api/authApi";
-import { setToken } from "../utils/auth";
+import { setToken, setUser } from "../utils/auth";
 import type { LoginRequest, RegisterRequest } from "../types/auth";
 
 export default function LoginPage() {
@@ -21,6 +21,7 @@ export default function LoginPage() {
         const credentials: LoginRequest = { username, password };
         const response = await login(credentials);
         setToken(response.token);
+        setUser({ id: response.id, username: response.username });
         navigate("/");
       } else {
         const userData: RegisterRequest = { username, email, password };

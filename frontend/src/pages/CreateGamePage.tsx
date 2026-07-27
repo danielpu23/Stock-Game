@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { createGame } from "../api/gameApi";
+import Navbar from "../components/Navbar";
 
 export default function CreateGamePage() {
   const navigate = useNavigate();
@@ -33,37 +34,54 @@ export default function CreateGamePage() {
 
   return (
     <div>
-      <h1>Create Game</h1>
+      <Navbar />
+      <div style={{ padding: "2rem" }}>
+        <h1>Create Game</h1>
 
-      <div>
-        <label>Game Name</label>
+        <div>
+          <label>Game Name</label>
 
-        <br />
+          <br />
 
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-      </div>
-
-      <br />
-
-      <div>
-        <label>Starting Cash</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            style={{ padding: "0.5rem", marginTop: "0.25rem" }}
+          />
+        </div>
 
         <br />
 
-        <input
-          type="number"
-          value={initialCash}
-          onChange={(e) => setInitialCash(Number(e.target.value))}
-        />
+        <div>
+          <label>Starting Cash</label>
+
+          <br />
+
+          <input
+            type="number"
+            value={initialCash}
+            onChange={(e) => setInitialCash(Number(e.target.value))}
+            style={{ padding: "0.5rem", marginTop: "0.25rem" }}
+          />
+        </div>
+
+        <br />
+
+        <button
+          onClick={handleCreateGame}
+          style={{
+            padding: "0.75rem 1.5rem",
+            backgroundColor: "#007bff",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+        >
+          Create Game
+        </button>
       </div>
-
-      <br />
-
-      <button onClick={handleCreateGame}>Create Game</button>
     </div>
   );
 }

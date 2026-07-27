@@ -27,7 +27,7 @@ export async function getTransactions(
 export async function getResults(gameId: number): Promise<GameResult[]> {
   const response = await api.get(`/games/${gameId}/results`);
 
-  return response.data;
+  return response.data.leaderboard;
 }
 
 export async function buyStock(
@@ -70,5 +70,10 @@ export async function joinGame(
 
 export async function startGame(gameId: number): Promise<Game> {
   const response = await api.post(`/games/${gameId}/start`);
+  return response.data;
+}
+
+export async function finishGame(gameId: number): Promise<Game> {
+  const response = await api.post(`/games/${gameId}/finish`);
   return response.data;
 }
