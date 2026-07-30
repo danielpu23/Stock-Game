@@ -1,64 +1,83 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+
 import { getResults } from "../api/gameApi";
+import { getErrorMessage } from "../api/errors";
+import { getUser } from "../utils/auth";
+import { directionClass, signedMoney } from "../utils/format";
 import type { GameResult } from "../types/result";
+
 import Navbar from "../components/Navbar";
+import Leaderboard from "../components/Leaderboard";
 
 export default function ResultsPage() {
   const { gameId } = useParams();
+  const navigate = useNavigate();
+
   const [results, setResults] = useState<GameResult[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const currentUser = getUser();
 
   useEffect(() => {
-    async function loadResults() {
-      try {
-        const data = await getResults(Number(gameId));
-        setResults(data);
-      } catch (error) {
-        console.error(error);
-      }
-    }
-    loadResults();
+    getResults(Number(gameId))
+      .then(setResults)
+      .catch((err) => {
+        setResults([]);
+        setError(getErrorMessage(err, "Could not load the results."));
+      });
   }, [gameId]);
 
+  const winner = results?.[0];
+
   return (
-    <div>
+    <>
       <Navbar />
-      <div style={{ padding: "2rem" }}>
-        <h1>Game Results</h1>
+      <div className="page">
+        <div className="page__head">
+          <div className="page__title-group">
+            <h1>Final results</h1>
+          </div>
+          <button className="btn btn--ghost" onClick={() => navigate("/")}>
+            Back to games
+          </button>
+        </div>
+
+        {error && <div className="alert alert--error">{error}</div>}
+
         {results === null ? (
-          <p>Loading...</p>
+          <p className="empty">Loading...</p>
+        ) : results.length === 0 ? (
+          !error && <p className="empty">No results to show.</p>
         ) : (
-          <div>
-            {results.length > 0 && (
-              <div>
-                <h2>Winner: {results[0].username}</h2>
-                <table style={{ borderCollapse: "collapse", width: "100%" }}>
-                  <thead>
-                    <tr style={{ borderBottom: "2px solid #ddd" }}>
-                      <th style={{ padding: "8px", textAlign: "left" }}>Rank</th>
-                      <th style={{ padding: "8px", textAlign: "left" }}>Username</th>
-                      <th style={{ padding: "8px", textAlign: "right" }}>
-                        Total Value
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {results.map((result, index) => (
-                      <tr key={index} style={{ borderBottom: "1px solid #ddd" }}>
-                        <td style={{ padding: "8px" }}>{index + 1}</td>
-                        <td style={{ padding: "8px" }}>{result.username}</td>
-                        <td style={{ padding: "8px", textAlign: "right" }}>
-                          ${result.totalValue.toFixed(2)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          <div className="stack">
+            {winner && (
+              <div className="winner">
+                <span className="winner__medal">🏆</span>
+                <div>
+                  <div className="winner__label">Winner</div>
+                  <div className="winner__name">{winner.username}</div>
+                  <div className={`small ${directionClass(winner.profitLoss)}`}>
+                    {signedMoney(winner.profitLoss)} on the game
+                  </div>
+                </div>
               </div>
             )}
+
+            <div className="card">
+              <div className="card__head">
+                <span className="card__title">Final standings</span>
+              </div>
+              <div className="card__body card__body--flush">
+                <Leaderboard
+                  leaderboard={results}
+                  currentUsername={currentUser?.username}
+                />
+              </div>
+            </div>
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 }

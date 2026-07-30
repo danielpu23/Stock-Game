@@ -12,4 +12,5 @@ public interface PlayerSessionRepository extends JpaRepository<PlayerSession, Lo
     boolean existsByUserAndGameSession(User user, GameSession gameSession);
     List<PlayerSession> findByGameSession(GameSession gameSession);
     Optional<PlayerSession> findByUserAndGameSession(User user, GameSession gameSession);
+    List<PlayerSession> findByUserOrderByJoinedAtDesc(User user);
 }

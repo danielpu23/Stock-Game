@@ -1,17 +1,29 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
-import { getGameState, buyStock, sellStock, finishGame, getLeaderboard, getTransactions } from "../api/gameApi";
-import { getStockPrice } from "../api/stockApi";
-import type { GameState } from "../types/game";
+import {
+  getGame,
+  getGameState,
+  buyStock,
+  sellStock,
+  finishGame,
+  getLeaderboard,
+  getTransactions,
+} from "../api/gameApi";
+import { getErrorMessage } from "../api/errors";
+import type { Game, GameState } from "../types/game";
 import type { GameResult } from "../types/result";
+import type { Transaction } from "../types/transaction";
 import { getUser } from "../utils/auth";
+import { directionClass, money, signedMoney } from "../utils/format";
+import { useStockQuote } from "../hooks/useStockQuote";
 
 import PlayerTable from "../components/PlayerTable";
 import HoldingsTable from "../components/HoldingsTable";
 import Leaderboard from "../components/Leaderboard";
 import StockChart from "../components/StockChart";
 import Navbar from "../components/Navbar";
+import StatusBadge from "../components/StatusBadge";
 
 export default function GamePage() {
   const { gameId } = useParams();
@@ -20,20 +32,25 @@ export default function GamePage() {
   const GAME_ID = Number(gameId);
 
   const [game, setGame] = useState<GameState | null>(null);
+  const [details, setDetails] = useState<Game | null>(null);
   const [leaderboard, setLeaderboard] = useState<GameResult[] | null>(null);
-  const [transactions, setTransactions] = useState<any[] | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[] | null>(null);
 
-  const [buySymbol, setBuySymbol] = useState("");
-  const [buyQuantity, setBuyQuantity] = useState(1);
+  // One ticker box drives both buy and sell now, rather than two separate
+  // sections each with their own symbol, quantity, and quote.
+  const [symbol, setSymbol] = useState("");
+  const [quantity, setQuantity] = useState(1);
 
-  const [sellSymbol, setSellSymbol] = useState("");
-  const [sellQuantity, setSellQuantity] = useState(1);
   const [showTransactions, setShowTransactions] = useState(false);
-  const [stockPrice, setStockPrice] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
 
-  async function loadGame() {
+  const quote = useStockQuote(symbol);
+  const currentUser = getUser();
+
+  const loadGame = useCallback(async () => {
     try {
       const [gameResponse, leaderboardResponse] = await Promise.all([
         getGameState(GAME_ID),
@@ -42,97 +59,96 @@ export default function GamePage() {
 
       setGame(gameResponse);
       setLeaderboard(leaderboardResponse);
-    } catch (error) {
-      console.error(error);
+      setLoadError(null);
+    } catch (err) {
+      setLoadError(getErrorMessage(err, "Could not load this game."));
     }
-  }
+  }, [GAME_ID]);
+
+  useEffect(() => {
+    // Fetched once: the name and creator don't change while the game runs.
+    getGame(GAME_ID)
+      .then(setDetails)
+      .catch(() => setDetails(null));
+  }, [GAME_ID]);
 
   useEffect(() => {
     loadGame();
-    const interval = setInterval(loadGame, 5000); // Refresh every 5 seconds
+    const interval = setInterval(loadGame, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [loadGame]);
 
-  async function handleBuy() {
+  // A game that hasn't started yet belongs in the lobby — otherwise this page
+  // offers a trade panel whose every order the server rejects.
+  useEffect(() => {
+    if (game?.status === "WAITING") {
+      navigate(`/games/${GAME_ID}/lobby`, { replace: true });
+    }
+  }, [game?.status, GAME_ID, navigate]);
+
+  const loadTransactions = useCallback(async () => {
+    try {
+      // The server works out which player session is ours. This used to guess a
+      // playerSessionId from the player's index in the list, which meant the
+      // history shown was somebody else's as soon as ids didn't line up.
+      setTransactions(await getTransactions(GAME_ID));
+    } catch (err) {
+      setError(getErrorMessage(err, "Could not load your transactions."));
+    }
+  }, [GAME_ID]);
+
+  async function trade(action: "buy" | "sell") {
     setError(null);
     setSuccess(null);
-    
-    if (!buySymbol.trim()) {
-      setError("Please enter a stock symbol");
-      return;
-    }
-    
-    if (buyQuantity <= 0) {
-      setError("Quantity must be greater than 0");
+
+    const ticker = symbol.trim().toUpperCase();
+
+    if (!ticker) {
+      setError("Enter a ticker symbol.");
       return;
     }
 
+    if (!Number.isInteger(quantity) || quantity <= 0) {
+      setError("Quantity must be a whole number of at least 1.");
+      return;
+    }
+
+    setPending(true);
     try {
-      await buyStock(GAME_ID, buySymbol.toUpperCase(), buyQuantity);
-      setSuccess("Stock purchased successfully!");
-      setBuySymbol("");
-      setBuyQuantity(1);
-      setStockPrice(null);
-      await loadGame();
-    } catch (error: any) {
-      console.error(error);
-      setError(error.response?.data?.message || "Failed to purchase stock. Please try again.");
-    }
-  }
+      if (action === "buy") {
+        await buyStock(GAME_ID, ticker, quantity);
+        setSuccess(`Bought ${quantity} ${ticker}`);
+      } else {
+        await sellStock(GAME_ID, ticker, quantity);
+        setSuccess(`Sold ${quantity} ${ticker}`);
+      }
 
-  async function handleSell() {
-    setError(null);
-    setSuccess(null);
-    
-    if (!sellSymbol.trim()) {
-      setError("Please enter a stock symbol");
-      return;
-    }
-    
-    if (sellQuantity <= 0) {
-      setError("Quantity must be greater than 0");
-      return;
-    }
+      setSymbol("");
+      setQuantity(1);
 
-    try {
-      await sellStock(GAME_ID, sellSymbol.toUpperCase(), sellQuantity);
-      setSuccess("Stock sold successfully!");
-      setSellSymbol("");
-      setSellQuantity(1);
-      setStockPrice(null);
       await loadGame();
-    } catch (error: any) {
-      console.error(error);
-      setError(error.response?.data?.message || "Failed to sell stock. Please try again.");
+      if (showTransactions) {
+        await loadTransactions();
+      }
+    } catch (err) {
+      setError(
+        getErrorMessage(
+          err,
+          action === "buy" ? "Failed to buy." : "Failed to sell.",
+        ),
+      );
+    } finally {
+      setPending(false);
     }
   }
 
   async function handleFinishGame() {
+    setError(null);
     try {
       await finishGame(GAME_ID);
       navigate(`/games/${GAME_ID}/results`);
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  async function loadTransactions() {
-    if (!currentPlayer) return;
-    
-    try {
-      // Find the player session ID from the game state
-      // This is a workaround - ideally the backend would provide playerSessionId in the game state
-      const currentUser = getUser();
-      const playerSessionId = game?.players.findIndex(
-        (p) => p.username === currentUser?.username
-      );
-      
-      if (playerSessionId !== undefined && playerSessionId >= 0) {
-        const txs = await getTransactions(playerSessionId + 1); // +1 because IDs are 1-based
-        setTransactions(txs);
-      }
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      setError(getErrorMessage(err, "Could not finish the game."));
     }
   }
 
@@ -143,280 +159,295 @@ export default function GamePage() {
     setShowTransactions(!showTransactions);
   }
 
-  async function fetchStockPrice(symbol: string) {
-    if (!symbol) {
-      setStockPrice(null);
-      return;
-    }
-    try {
-      const price = await getStockPrice(symbol);
-      setStockPrice(price);
-    } catch (error) {
-      console.error(error);
-      setStockPrice(null);
-    }
-  }
-
   if (game == null) {
-    return <h2>Loading...</h2>;
+    return (
+      <>
+        <Navbar />
+        <div className="page">
+          {loadError ? (
+            <div className="alert alert--error">{loadError}</div>
+          ) : (
+            <p className="empty">Loading...</p>
+          )}
+        </div>
+      </>
+    );
   }
 
-  const currentUser = getUser();
-  const currentPlayer = game.players.find(
+  const isHost =
+    details != null && details.createdByUsername === currentUser?.username;
+
+  const me = game.players.find(
     (player) => player.username === currentUser?.username,
   );
 
+  const myRank = leaderboard?.find(
+    (row) => row.username === currentUser?.username,
+  );
+
+  const netWorth = me ? me.cashBalance + me.portfolioValue : 0;
+  const isOver = game.status === "FINISHED";
+
+  const estimate = quote.price !== null ? quote.price * quantity : null;
+
   return (
-    <div>
+    <>
       <Navbar />
-      <div style={{ padding: "2rem" }}>
-        <h1>Stock Game</h1>
-        <h2>Status: {game.status}</h2>
-        
-        {game.status === "FINISHED" && (
-          <div style={{ 
-            backgroundColor: "#fff3cd", 
-            color: "#856404", 
-            padding: "1rem", 
-            borderRadius: "4px", 
-            marginBottom: "1rem",
-            border: "1px solid #ffc107"
-          }}>
-            <h3 style={{ margin: "0 0 0.5rem 0" }}>🎮 Game Over!</h3>
-            <p style={{ margin: 0 }}>
-              This game has finished. View the final results on the results page or return to the menu to start a new game.
-            </p>
-            <div style={{ marginTop: "1rem" }}>
-              <button
-                onClick={() => navigate(`/games/${GAME_ID}/results`)}
-                style={{
-                  padding: "0.5rem 1rem",
-                  backgroundColor: "#17a2b8",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                  marginRight: "0.5rem"
-                }}
-              >
-                View Results
-              </button>
-              <button
-                onClick={() => navigate("/")}
-                style={{
-                  padding: "0.5rem 1rem",
-                  backgroundColor: "#6c757d",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer"
-                }}
-              >
-                Back to Menu
-              </button>
+      <div className="page">
+        <div className="page__head">
+          <div className="page__title-group">
+            <h1>{details?.name ?? "Stock Game"}</h1>
+            <div className="row">
+              <StatusBadge status={game.status} />
+              <span className="muted small">
+                {game.players.length} player{game.players.length === 1 ? "" : "s"}
+                {details && ` · ${money(details.initialCash)} to start`}
+              </span>
             </div>
           </div>
-        )}
-        
-        {error && (
-          <div style={{ 
-            backgroundColor: "#f8d7da", 
-            color: "#721c24", 
-            padding: "1rem", 
-            borderRadius: "4px", 
-            marginBottom: "1rem" 
-          }}>
-            {error}
-          </div>
-        )}
-        
-        {success && (
-          <div style={{ 
-            backgroundColor: "#d4edda", 
-            color: "#155724", 
-            padding: "1rem", 
-            borderRadius: "4px", 
-            marginBottom: "1rem" 
-          }}>
-            {success}
-          </div>
-        )}
-        
-        <PlayerTable players={game.players} />
-        <h2>Your Holdings</h2>
-        {currentPlayer && <HoldingsTable holdings={currentPlayer.holdings} />}
-        {leaderboard && <Leaderboard leaderboard={leaderboard} />}
-        
-        {game.status !== "FINISHED" && (
-          <>
-            <hr />
-            <h2>Buy Stock</h2>
-            <input
-              type="text"
-              placeholder="Ticker"
-              value={buySymbol}
-              onChange={(e) => {
-                setBuySymbol(e.target.value);
-                fetchStockPrice(e.target.value);
-              }}
-              style={{ padding: "0.5rem", marginRight: "0.5rem" }}
-            />
 
-            <input
-              type="number"
-              min={1}
-              value={buyQuantity}
-              onChange={(e) => setBuyQuantity(Number(e.target.value))}
-              style={{ padding: "0.5rem", marginRight: "0.5rem" }}
-            />
-
-            {stockPrice !== null && (
-              <>
-                <span style={{ marginLeft: "1rem", fontWeight: "bold" }}>
-                  ${stockPrice.toFixed(2)}
-                </span>
-                <StockChart 
-                  symbol={buySymbol.toUpperCase()} 
-                  currentPrice={stockPrice}
-                />
-              </>
+          <div className="row">
+            <button className="btn btn--ghost" onClick={toggleTransactions}>
+              {showTransactions ? "Hide history" : "Trade history"}
+            </button>
+            {isHost && !isOver && (
+              <button className="btn btn--ghost" onClick={handleFinishGame}>
+                End game
+              </button>
             )}
-
-            <button
-              onClick={handleBuy}
-              style={{
-                padding: "0.5rem 1rem",
-                backgroundColor: "#28a745",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                marginLeft: "1rem",
-              }}
-            >
-              Buy
-            </button>
-
-            <hr />
-
-            <h2>Sell Stock</h2>
-            <input
-              type="text"
-              placeholder="Ticker"
-              value={sellSymbol}
-              onChange={(e) => {
-                setSellSymbol(e.target.value);
-                fetchStockPrice(e.target.value);
-              }}
-              style={{ padding: "0.5rem", marginRight: "0.5rem" }}
-            />
-            <input
-              type="number"
-              min={1}
-              value={sellQuantity}
-              onChange={(e) => setSellQuantity(Number(e.target.value))}
-              style={{ padding: "0.5rem", marginRight: "0.5rem" }}
-            />
-
-            {stockPrice !== null && (
-              <>
-                <span style={{ marginLeft: "1rem", fontWeight: "bold" }}>
-                  ${stockPrice.toFixed(2)}
-                </span>
-                <StockChart 
-                  symbol={sellSymbol.toUpperCase()} 
-                  currentPrice={stockPrice}
-                />
-              </>
+            {isOver && (
+              <button
+                className="btn btn--primary"
+                onClick={() => navigate(`/games/${GAME_ID}/results`)}
+              >
+                View results
+              </button>
             )}
+          </div>
+        </div>
 
-            <button
-              onClick={handleSell}
-              style={{
-                padding: "0.5rem 1rem",
-                backgroundColor: "#dc3545",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                marginLeft: "1rem",
-              }}
-            >
-              Sell
-            </button>
+        <div className="stack">
+          {isOver && (
+            <div className="alert alert--warn">
+              This game has finished. Trading is closed.
+            </div>
+          )}
+          {loadError && <div className="alert alert--error">{loadError}</div>}
+          {error && <div className="alert alert--error">{error}</div>}
+          {success && <div className="alert alert--success">{success}</div>}
 
-            <hr />
-
-            <button
-              onClick={handleFinishGame}
-              style={{
-                padding: "0.75rem 1.5rem",
-                backgroundColor: "#6c757d",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
-            >
-              Finish Game
-            </button>
-
-            <hr />
-
-            <button
-              onClick={toggleTransactions}
-              style={{
-                padding: "0.5rem 1rem",
-                backgroundColor: "#17a2b8",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
-            >
-              {showTransactions ? "Hide Transactions" : "Show Transactions"}
-            </button>
-
-            {showTransactions && transactions && (
-              <div style={{ marginTop: "1rem" }}>
-                <h3>Transaction History</h3>
-                {transactions.length === 0 ? (
-                  <p>No transactions yet.</p>
-                ) : (
-                  <table style={{ borderCollapse: "collapse", width: "100%" }}>
-                    <thead>
-                      <tr style={{ borderBottom: "2px solid #ddd" }}>
-                        <th style={{ padding: "8px", textAlign: "left" }}>Type</th>
-                        <th style={{ padding: "8px", textAlign: "left" }}>Symbol</th>
-                        <th style={{ padding: "8px", textAlign: "right" }}>Quantity</th>
-                        <th style={{ padding: "8px", textAlign: "right" }}>Price</th>
-                        <th style={{ padding: "8px", textAlign: "right" }}>Time</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {transactions.map((tx) => (
-                        <tr key={tx.id} style={{ borderBottom: "1px solid #ddd" }}>
-                          <td style={{ padding: "8px" }}>{tx.type}</td>
-                          <td style={{ padding: "8px" }}>{tx.symbol}</td>
-                          <td style={{ padding: "8px", textAlign: "right" }}>
-                            {tx.quantity}
-                          </td>
-                          <td style={{ padding: "8px", textAlign: "right" }}>
-                            ${tx.price.toFixed(2)}
-                          </td>
-                          <td style={{ padding: "8px", textAlign: "right" }}>
-                            {new Date(tx.createdAt).toLocaleTimeString()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+          {me && (
+            <div className="stats">
+              <div className="stat">
+                <div className="stat__label">Net worth</div>
+                <div className="stat__value">{money(netWorth)}</div>
+                {myRank && (
+                  <div className={`stat__sub ${directionClass(myRank.profitLoss)}`}>
+                    {signedMoney(myRank.profitLoss)}
+                  </div>
                 )}
               </div>
+
+              <div className="stat">
+                <div className="stat__label">Buying power</div>
+                <div className="stat__value">{money(me.cashBalance)}</div>
+                <div className="stat__sub">cash available</div>
+              </div>
+
+              <div className="stat">
+                <div className="stat__label">Holdings</div>
+                <div className="stat__value">{money(me.portfolioValue)}</div>
+                <div className="stat__sub">
+                  {me.holdings.length} position{me.holdings.length === 1 ? "" : "s"}
+                </div>
+              </div>
+
+              <div className="stat">
+                <div className="stat__label">Rank</div>
+                <div className="stat__value">
+                  {myRank ? `#${myRank.rank}` : "—"}
+                </div>
+                <div className="stat__sub">of {game.players.length}</div>
+              </div>
+            </div>
+          )}
+
+          <div className={isOver ? "grid-2" : "grid-trade"}>
+            {!isOver && (
+              <div className="card">
+                <div className="card__head">
+                  <span className="card__title">Trade</span>
+                </div>
+                <div className="card__body">
+                  <div className="stack stack--tight">
+                    <div className="trade__inputs">
+                      <div className="field">
+                        <label className="label" htmlFor="symbol">
+                          Ticker
+                        </label>
+                        <input
+                          className="input input--ticker"
+                          id="symbol"
+                          type="text"
+                          placeholder="AAPL"
+                          maxLength={5}
+                          value={symbol}
+                          onChange={(e) => setSymbol(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="field">
+                        <label className="label" htmlFor="quantity">
+                          Shares
+                        </label>
+                        <input
+                          className="input input--num"
+                          id="quantity"
+                          type="number"
+                          min={1}
+                          step={1}
+                          value={quantity}
+                          onChange={(e) => setQuantity(Number(e.target.value))}
+                        />
+                      </div>
+                    </div>
+
+                    {quote.loading && <p className="trade__hint">Fetching quote...</p>}
+                    {quote.error && <p className="trade__hint down">{quote.error}</p>}
+
+                    {quote.price !== null && (
+                      <>
+                        <StockChart
+                          symbol={quote.symbol}
+                          price={quote.price}
+                          history={quote.history}
+                        />
+                        {estimate !== null && (
+                          <p className="trade__hint">
+                            {quantity} × {money(quote.price)} ={" "}
+                            <strong>{money(estimate)}</strong>
+                            {me && estimate > me.cashBalance && (
+                              <span className="down"> · more than your cash</span>
+                            )}
+                          </p>
+                        )}
+                      </>
+                    )}
+
+                    <div className="trade__actions">
+                      <button
+                        className="btn btn--buy"
+                        onClick={() => trade("buy")}
+                        disabled={pending}
+                      >
+                        Buy
+                      </button>
+                      <button
+                        className="btn btn--sell"
+                        onClick={() => trade("sell")}
+                        disabled={pending}
+                      >
+                        Sell
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
-          </>
-        )}
+
+            <div className="card">
+              <div className="card__head">
+                <span className="card__title">Your positions</span>
+                {me && <span className="muted small">{money(me.portfolioValue)}</span>}
+              </div>
+              <div className="card__body card__body--flush">
+                {me && <HoldingsTable holdings={me.holdings} />}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid-2">
+            <div className="card">
+              <div className="card__head">
+                <span className="card__title">Leaderboard</span>
+              </div>
+              <div className="card__body card__body--flush">
+                {leaderboard && (
+                  <Leaderboard
+                    leaderboard={leaderboard}
+                    currentUsername={currentUser?.username}
+                    showBreakdown={false}
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card__head">
+                <span className="card__title">All players</span>
+              </div>
+              <div className="card__body card__body--flush">
+                <PlayerTable
+                  players={game.players}
+                  currentUsername={currentUser?.username}
+                />
+              </div>
+            </div>
+          </div>
+
+          {showTransactions && (
+            <div className="card">
+              <div className="card__head">
+                <span className="card__title">Your trade history</span>
+              </div>
+              <div className="card__body card__body--flush">
+                {transactions == null ? (
+                  <p className="empty">Loading...</p>
+                ) : transactions.length === 0 ? (
+                  <p className="empty">You haven't traded yet.</p>
+                ) : (
+                  <div className="table-scroll">
+                    <table className="table">
+                      <thead>
+                        <tr>
+                          <th>Type</th>
+                          <th>Symbol</th>
+                          <th className="num">Shares</th>
+                          <th className="num">Price</th>
+                          <th className="num">Total</th>
+                          <th className="num">Time</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[...transactions]
+                          .sort(
+                            (a, b) =>
+                              new Date(b.createdAt).getTime() -
+                              new Date(a.createdAt).getTime(),
+                          )
+                          .map((tx) => (
+                            <tr key={tx.id}>
+                              <td className={tx.type === "BUY" ? "up" : "down"}>
+                                {tx.type}
+                              </td>
+                              <td className="ticker">{tx.symbol}</td>
+                              <td className="num">{tx.quantity}</td>
+                              <td className="num">{money(tx.price)}</td>
+                              <td className="num">{money(tx.price * tx.quantity)}</td>
+                              <td className="num dim">
+                                {new Date(tx.createdAt).toLocaleTimeString()}
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

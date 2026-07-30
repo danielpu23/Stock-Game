@@ -1,6 +1,7 @@
 package com.stock.stock_game.security;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Optional;
 
 import org.springframework.lang.NonNull;
@@ -74,11 +75,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        // Authorities must be an empty list rather than null: the three-argument
+        // constructor marks the token authenticated, and downstream filters iterate
+        // the collection without a null check.
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
                         user,
                         null,
-                        null
+                        Collections.emptyList()
                 );
 
         authentication.setDetails(

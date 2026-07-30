@@ -4,4 +4,5 @@ export interface GameResult {
   cashBalance: number;
   holdingsValue: number;
   totalValue: number;
+  profitLoss: number;
 }
