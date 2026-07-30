@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import { login, register } from "../api/authApi";
+import { getErrorMessage } from "../api/errors";
 import { setToken, setUser } from "../utils/auth";
 import type { LoginRequest, RegisterRequest } from "../types/auth";
 
@@ -10,11 +12,22 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
   const navigate = useNavigate();
+
+  function switchMode(toLogin: boolean) {
+    setIsLogin(toLogin);
+    setError("");
+    setNotice("");
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setNotice("");
+    setSubmitting(true);
 
     try {
       if (isLogin) {
@@ -26,121 +39,142 @@ export default function LoginPage() {
       } else {
         const userData: RegisterRequest = { username, email, password };
         await register(userData);
-        // After successful registration, switch to login
         setIsLogin(true);
-        setError("Registration successful! Please login.");
+        setNotice("Account created. You can sign in now.");
       }
-    } catch (err: any) {
-      if (err.response?.status === 409) {
-        setError("Username or email already exists. Please try different credentials.");
-      } else if (err.response?.status === 401) {
-        setError("Invalid username or password.");
-      } else {
-        setError(
+    } catch (err) {
+      // Surface the server's own reason ("password must be at least 8
+      // characters", "Email already exists") rather than a generic message.
+      setError(
+        getErrorMessage(
+          err,
           isLogin
             ? "Login failed. Please check your credentials."
-            : "Registration failed. Please try again."
-        );
-      }
+            : "Registration failed. Please try again.",
+        ),
+      );
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: "400px", margin: "2rem auto", padding: "2rem" }}>
-      <h1>{isLogin ? "Login" : "Register"}</h1>
-      {error && (
-        <div style={{ color: "red", marginBottom: "1rem" }}>{error}</div>
-      )}
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: "1rem" }}>
-          <label htmlFor="username">Username:</label>
-          <input
-            id="username"
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            style={{ width: "100%", padding: "0.5rem", marginTop: "0.25rem" }}
-          />
+    <div className="auth">
+      <div className="auth__card">
+        <div className="auth__brand">
+          <span className="navbar__mark" style={{ width: 44, height: 44, fontSize: "1.1rem" }}>
+            SG
+          </span>
+          <h1>Stock Game</h1>
+          <p className="auth__tagline">
+            Trade against your friends. Best portfolio wins.
+          </p>
         </div>
-        {!isLogin && (
-          <div style={{ marginBottom: "1rem" }}>
-            <label htmlFor="email">Email:</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={{
-                width: "100%",
-                padding: "0.5rem",
-                marginTop: "0.25rem",
-              }}
-            />
+
+        <div className="card">
+          <div className="card__body">
+            <div className="stack stack--tight">
+              {error && <div className="alert alert--error">{error}</div>}
+              {notice && <div className="alert alert--success">{notice}</div>}
+
+              <form onSubmit={handleSubmit} className="stack stack--tight">
+                <div className="field">
+                  <label className="label" htmlFor="username">
+                    Username
+                  </label>
+                  <input
+                    className="input"
+                    id="username"
+                    type="text"
+                    autoComplete="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                  />
+                </div>
+
+                {!isLogin && (
+                  <div className="field">
+                    <label className="label" htmlFor="email">
+                      Email
+                    </label>
+                    <input
+                      className="input"
+                      id="email"
+                      type="email"
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                )}
+
+                <div className="field">
+                  <label className="label" htmlFor="password">
+                    Password
+                  </label>
+                  <input
+                    className="input"
+                    id="password"
+                    type="password"
+                    autoComplete={isLogin ? "current-password" : "new-password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  {!isLogin && (
+                    <span className="dim small">At least 8 characters.</span>
+                  )}
+                </div>
+
+                <button
+                  className="btn btn--primary btn--block"
+                  type="submit"
+                  disabled={submitting}
+                >
+                  {submitting
+                    ? "Please wait..."
+                    : isLogin
+                      ? "Sign in"
+                      : "Create account"}
+                </button>
+              </form>
+            </div>
+
+            <div className="auth__switch">
+              {isLogin ? (
+                <>
+                  Don't have an account?{" "}
+                  <button
+                    type="button"
+                    className="link-btn"
+                    onClick={() => switchMode(false)}
+                  >
+                    Register
+                  </button>
+                </>
+              ) : (
+                <>
+                  Already have an account?{" "}
+                  <button
+                    type="button"
+                    className="link-btn"
+                    onClick={() => switchMode(true)}
+                  >
+                    Sign in
+                  </button>
+                </>
+              )}
+            </div>
           </div>
-        )}
-        <div style={{ marginBottom: "1rem" }}>
-          <label htmlFor="password">Password:</label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={{ width: "100%", padding: "0.5rem", marginTop: "0.25rem" }}
-          />
         </div>
-        <button
-          type="submit"
-          style={{
-            width: "100%",
-            padding: "0.75rem",
-            backgroundColor: "#007bff",
-            color: "white",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          {isLogin ? "Login" : "Register"}
-        </button>
-      </form>
-      <div style={{ marginTop: "1rem", textAlign: "center" }}>
-        {isLogin ? (
-          <>
-            Don't have an account?{" "}
-            <button
-              type="button"
-              onClick={() => setIsLogin(false)}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#007bff",
-                cursor: "pointer",
-                textDecoration: "underline",
-              }}
-            >
-              Register
-            </button>
-          </>
-        ) : (
-          <>
-            Already have an account?{" "}
-            <button
-              type="button"
-              onClick={() => setIsLogin(true)}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#007bff",
-                cursor: "pointer",
-                textDecoration: "underline",
-              }}
-            >
-              Login
-            </button>
-          </>
-        )}
+
+        {/* The dev profile seeds these two accounts. */}
+        <div className="auth__demo">
+          Demo accounts: <code>alice</code> / <code>bob</code> — password{" "}
+          <code>password123</code>
+        </div>
       </div>
     </div>
   );

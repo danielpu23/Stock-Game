@@ -1,29 +1,61 @@
 package com.stock.stock_game.service;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import java.math.BigDecimal;
+
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.stock.stock_game.dto.response.StockQuoteResponse;
 
-@Service
-public class FinnhubClient {
+/**
+ * Live quotes from Finnhub. Instantiated by
+ * {@link com.stock.stock_game.config.StockPriceConfig} only when an API key is
+ * present, so the no-key case never reaches the network.
+ */
+public class FinnhubClient implements StockPriceProvider {
 
-    private final RestTemplate restTemplate;
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${stock.api.key}")
-    private String apiKey;
+    private final String apiKey;
+    private final String apiUrl;
 
-    @Value("${stock.api.url}")
-    private String apiUrl;
-
-    public FinnhubClient(){
-        this.restTemplate = new RestTemplate();
+    public FinnhubClient(String apiKey, String apiUrl) {
+        this.apiKey = apiKey;
+        this.apiUrl = apiUrl;
     }
 
-    public StockQuoteResponse getQuote(String symbol){
-        String url = apiUrl + "/quote?symbol=" + symbol + "&token=" + apiKey;
+    @Override
+    public BigDecimal fetchPrice(String symbol) {
 
-        return restTemplate.getForObject(url, StockQuoteResponse.class);
+        // Build the URL through UriComponentsBuilder so a symbol containing URL
+        // metacharacters can't alter the query string.
+        String url = UriComponentsBuilder.fromUriString(apiUrl)
+                .path("/quote")
+                .queryParam("symbol", symbol)
+                .queryParam("token", apiKey)
+                .toUriString();
+
+        StockQuoteResponse quote;
+        try {
+            quote = restTemplate.getForObject(url, StockQuoteResponse.class);
+        } catch (RestClientException e) {
+            throw new StockPriceUnavailableException(
+                    "Could not reach the price feed. Please try again.", e);
+        }
+
+        // Finnhub answers with c=0 for symbols it doesn't know, rather than a 404.
+        if (quote == null
+                || quote.getC() == null
+                || quote.getC().signum() <= 0) {
+            return null;
+        }
+
+        return quote.getC();
+    }
+
+    @Override
+    public String describe() {
+        return "Finnhub live quotes";
     }
 }

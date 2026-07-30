@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { createGame } from "../api/gameApi";
+import { getErrorMessage } from "../api/errors";
 import Navbar from "../components/Navbar";
 
 export default function CreateGamePage() {
@@ -9,79 +10,101 @@ export default function CreateGamePage() {
 
   const [name, setName] = useState("");
   const [initialCash, setInitialCash] = useState(10000);
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  async function handleCreateGame() {
+  async function handleCreateGame(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+
     if (name.trim() === "") {
-      alert("Please enter a game name.");
+      setError("Please enter a game name.");
       return;
     }
 
-    if (initialCash <= 0) {
-      alert("Starting cash must be greater than zero.");
+    if (!Number.isFinite(initialCash) || initialCash <= 0) {
+      setError("Starting cash must be greater than zero.");
       return;
     }
 
+    setSubmitting(true);
     try {
-      const game = await createGame(name, initialCash);
-
+      const game = await createGame(name.trim(), initialCash);
       navigate(`/games/${game.id}/lobby`);
-    } catch (error) {
-      console.error(error);
-
-      alert("Unable to create game.");
+    } catch (err) {
+      setError(getErrorMessage(err, "Unable to create game."));
+    } finally {
+      setSubmitting(false);
     }
   }
 
   return (
-    <div>
+    <>
       <Navbar />
-      <div style={{ padding: "2rem" }}>
-        <h1>Create Game</h1>
-
-        <div>
-          <label>Game Name</label>
-
-          <br />
-
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            style={{ padding: "0.5rem", marginTop: "0.25rem" }}
-          />
+      <div className="page page--narrow">
+        <div className="page__head">
+          <div className="page__title-group">
+            <h1>New game</h1>
+            <p className="muted small">
+              Everyone starts with the same cash. You'll get an invite code to share.
+            </p>
+          </div>
         </div>
 
-        <br />
+        <div className="card">
+          <div className="card__body">
+            <form onSubmit={handleCreateGame} className="stack stack--tight">
+              {error && <div className="alert alert--error">{error}</div>}
 
-        <div>
-          <label>Starting Cash</label>
+              <div className="field">
+                <label className="label" htmlFor="gameName">
+                  Game name
+                </label>
+                <input
+                  className="input"
+                  id="gameName"
+                  type="text"
+                  placeholder="Friday Night Trading"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
 
-          <br />
+              <div className="field">
+                <label className="label" htmlFor="startingCash">
+                  Starting cash
+                </label>
+                <input
+                  className="input input--num"
+                  id="startingCash"
+                  type="number"
+                  min={1}
+                  step={100}
+                  value={initialCash}
+                  onChange={(e) => setInitialCash(Number(e.target.value))}
+                />
+              </div>
 
-          <input
-            type="number"
-            value={initialCash}
-            onChange={(e) => setInitialCash(Number(e.target.value))}
-            style={{ padding: "0.5rem", marginTop: "0.25rem" }}
-          />
+              <div className="row">
+                <button
+                  className="btn btn--primary"
+                  type="submit"
+                  disabled={submitting}
+                >
+                  {submitting ? "Creating..." : "Create game"}
+                </button>
+                <button
+                  className="btn btn--ghost"
+                  type="button"
+                  onClick={() => navigate("/")}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-
-        <br />
-
-        <button
-          onClick={handleCreateGame}
-          style={{
-            padding: "0.75rem 1.5rem",
-            backgroundColor: "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
-          Create Game
-        </button>
       </div>
-    </div>
+    </>
   );
 }

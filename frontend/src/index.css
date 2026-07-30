@@ -1,0 +1,779 @@
+/* ==========================================================================
+   Stock Game — dark trading-terminal theme
+
+   Everything is driven by the custom properties in :root. Change a token here
+   and it propagates through every page; there are no per-element inline styles
+   left in the app.
+   ========================================================================== */
+
+:root {
+  /* Surfaces, from furthest back to closest to the reader. */
+  --bg: #0a0e14;
+  --surface: #111823;
+  --surface-raised: #18212f;
+  --surface-hover: #1e293a;
+
+  --border: #232e3f;
+  --border-strong: #33415a;
+
+  /* Text, in descending emphasis. */
+  --text: #e6edf5;
+  --text-muted: #93a1b5;
+  --text-dim: #5f6f86;
+
+  --accent: #4c8dff;
+  --accent-hover: #6ba1ff;
+  --accent-dim: rgba(76, 141, 255, 0.14);
+
+  /* Market direction. Used for P/L, buy/sell, and every gain/loss figure. */
+  --up: #2ee6a8;
+  --up-dim: rgba(46, 230, 168, 0.13);
+  --down: #ff5f70;
+  --down-dim: rgba(255, 95, 112, 0.13);
+  --warn: #f5b944;
+  --warn-dim: rgba(245, 185, 68, 0.13);
+
+  --radius: 10px;
+  --radius-sm: 6px;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  /* Figures and tickers are monospaced so digits line up column to column. */
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.28);
+
+  /* Makes native controls (number spinners, autofill) render dark. */
+  color-scheme: dark;
+}
+
+/* --------------------------------------------------------------------------
+   Reset and base
+   -------------------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+}
+
+h1 { font-size: 1.75rem; }
+h2 { font-size: 1.25rem; }
+h3 { font-size: 1rem; }
+
+p { margin: 0; }
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover { text-decoration: underline; }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   Layout
+   -------------------------------------------------------------------------- */
+
+.page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-5) var(--space-7);
+}
+
+.page--narrow { max-width: 460px; }
+
+.page__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-5);
+}
+
+.page__title-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.stack--tight { gap: var(--space-3); }
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/* Holdings and leaderboard sit side by side on a wide screen. */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: var(--space-5);
+  align-items: start;
+}
+
+/*
+  The trade panel only needs enough room for two inputs, whereas the positions
+  table has six columns — an even split made the table scroll horizontally.
+*/
+.grid-trade {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .grid-trade { grid-template-columns: 1fr; }
+}
+
+/* --------------------------------------------------------------------------
+   Navbar
+   -------------------------------------------------------------------------- */
+
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-5);
+  background: rgba(10, 14, 20, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+.navbar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--text);
+  font: inherit;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+}
+
+.navbar__mark {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(140deg, var(--accent), #7c5cff);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.navbar__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.navbar__user {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.navbar__user strong { color: var(--text); }
+
+/* --------------------------------------------------------------------------
+   Buttons
+   -------------------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0.55rem 1rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 550;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.btn:hover { background: var(--surface-hover); }
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: var(--accent);
+  color: #06111f;
+  font-weight: 650;
+}
+
+.btn--primary:hover { background: var(--accent-hover); }
+
+.btn--buy {
+  background: var(--up);
+  color: #04231a;
+  font-weight: 650;
+}
+
+.btn--buy:hover { background: #4cf0bb; }
+
+.btn--sell {
+  background: var(--down);
+  color: #2a0508;
+  font-weight: 650;
+}
+
+.btn--sell:hover { background: #ff7d8b; }
+
+.btn--ghost {
+  background: transparent;
+  border-color: var(--border-strong);
+  color: var(--text-muted);
+}
+
+.btn--ghost:hover {
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+.btn--sm {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.825rem;
+}
+
+.btn--block { width: 100%; }
+
+/* --------------------------------------------------------------------------
+   Cards
+   -------------------------------------------------------------------------- */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border);
+}
+
+.card__title {
+  font-size: 0.8rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.card__body { padding: var(--space-5); }
+
+.card__body--flush { padding: 0; }
+
+/* --------------------------------------------------------------------------
+   Stat tiles
+   -------------------------------------------------------------------------- */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--space-4);
+}
+
+.stat {
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.stat__label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--text-dim);
+}
+
+.stat__value {
+  margin-top: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.stat__sub {
+  margin-top: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+/* --------------------------------------------------------------------------
+   Tables
+   -------------------------------------------------------------------------- */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.table th {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  background: var(--surface-raised);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.table tbody tr:last-child td { border-bottom: 0; }
+
+.table tbody tr:hover { background: var(--surface-raised); }
+
+/* Highlights the signed-in player's own row. */
+.table tr.is-you {
+  background: var(--accent-dim);
+}
+
+.table tr.is-you:hover { background: rgba(76, 141, 255, 0.2); }
+
+/* Right-aligned monospace, so decimal points line up down the column. */
+.num {
+  font-family: var(--font-mono);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+th.num { text-align: right; }
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+/* --------------------------------------------------------------------------
+   Tickers, codes, and market direction
+   -------------------------------------------------------------------------- */
+
+.ticker {
+  font-family: var(--font-mono);
+  font-weight: 650;
+  letter-spacing: 0.04em;
+}
+
+.up { color: var(--up); }
+.down { color: var(--down); }
+
+.invite-code {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  font-family: var(--font-mono);
+  font-size: 1.35rem;
+  font-weight: 650;
+  letter-spacing: 0.18em;
+  color: var(--text);
+}
+
+/* --------------------------------------------------------------------------
+   Badges
+   -------------------------------------------------------------------------- */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.badge--waiting {
+  background: var(--warn-dim);
+  color: var(--warn);
+}
+
+.badge--live {
+  background: var(--up-dim);
+  color: var(--up);
+}
+
+.badge--finished {
+  background: var(--surface-hover);
+  color: var(--text-muted);
+}
+
+.badge--host {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+/* The pulsing dot on an in-progress game. */
+.badge--live::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+/* Rank pills on the leaderboard. */
+.rank {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--surface-hover);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.rank--1 { background: rgba(245, 185, 68, 0.2); color: #f5c869; }
+.rank--2 { background: rgba(190, 202, 218, 0.16); color: #becada; }
+.rank--3 { background: rgba(205, 127, 80, 0.18); color: #d99368; }
+
+/* --------------------------------------------------------------------------
+   Forms
+   -------------------------------------------------------------------------- */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.925rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.input::placeholder { color: var(--text-dim); }
+
+.input--ticker {
+  font-family: var(--font-mono);
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.input--num {
+  font-family: var(--font-mono);
+  text-align: right;
+}
+
+/* --------------------------------------------------------------------------
+   Trade panel
+   -------------------------------------------------------------------------- */
+
+/* Ticker takes the free space, quantity stays a fixed narrow column. */
+.trade__inputs {
+  display: grid;
+  grid-template-columns: 1fr 96px;
+  gap: var(--space-3);
+}
+
+.trade__quote {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+.trade__quote-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.trade__quote-price {
+  font-size: 1.15rem;
+  font-weight: 650;
+}
+
+/* Stretches to whatever width the trade panel happens to be. */
+.trade__spark {
+  display: block;
+  width: 100%;
+  height: 40px;
+}
+
+.trade__quote-change {
+  text-align: right;
+  font-size: 0.8rem;
+}
+
+.trade__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.trade__hint {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+/* --------------------------------------------------------------------------
+   Alerts
+   -------------------------------------------------------------------------- */
+
+.alert {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+}
+
+.alert--error {
+  background: var(--down-dim);
+  border-color: rgba(255, 95, 112, 0.35);
+  color: #ffb3bb;
+}
+
+.alert--success {
+  background: var(--up-dim);
+  border-color: rgba(46, 230, 168, 0.3);
+  color: #8ff2d2;
+}
+
+.alert--warn {
+  background: var(--warn-dim);
+  border-color: rgba(245, 185, 68, 0.32);
+  color: #f7d08f;
+}
+
+/* --------------------------------------------------------------------------
+   Auth screen
+   -------------------------------------------------------------------------- */
+
+.auth {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: var(--space-5);
+}
+
+.auth__card {
+  width: 100%;
+  max-width: 400px;
+}
+
+.auth__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+  text-align: center;
+}
+
+.auth__tagline {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.auth__switch {
+  margin-top: var(--space-5);
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.link-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.link-btn:hover { text-decoration: underline; }
+
+.auth__demo {
+  margin-top: var(--space-4);
+  padding: var(--space-3);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.auth__demo code {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   Misc
+   -------------------------------------------------------------------------- */
+
+.muted { color: var(--text-muted); }
+.dim { color: var(--text-dim); }
+.small { font-size: 0.85rem; }
+
+.empty {
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+.winner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background: linear-gradient(
+    135deg,
+    rgba(245, 185, 68, 0.14),
+    rgba(245, 185, 68, 0.03)
+  );
+  border: 1px solid rgba(245, 185, 68, 0.3);
+  border-radius: var(--radius);
+}
+
+.winner__medal { font-size: 2rem; line-height: 1; }
+
+.winner__label {
+  font-size: 0.72rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--warn);
+}
+
+.winner__name {
+  font-size: 1.5rem;
+  font-weight: 650;
+}
+
+@media (max-width: 640px) {
+  .page { padding: var(--space-5) var(--space-4) var(--space-6); }
+  .navbar { padding: var(--space-3) var(--space-4); }
+  .navbar__user { display: none; }
+  h1 { font-size: 1.4rem; }
+}

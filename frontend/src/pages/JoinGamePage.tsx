@@ -1,61 +1,97 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import { joinGame } from "../api/gameApi";
+import { getErrorMessage } from "../api/errors";
 import Navbar from "../components/Navbar";
 
 export default function JoinGamePage() {
   const navigate = useNavigate();
-  const [inviteCode, setInviteCode] = useState("");
 
-  async function handleJoinGame() {
+  const [inviteCode, setInviteCode] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleJoinGame(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+
     if (inviteCode.trim() === "") {
-      alert("Please enter an invite code.");
+      setError("Please enter an invite code.");
       return;
     }
 
+    setSubmitting(true);
     try {
-      await joinGame(inviteCode);
-      alert("Successfully joined the game!");
-      navigate("/");
-    } catch (error) {
-      console.error(error);
-      alert("Unable to join game. Please check the invite code.");
+      const game = await joinGame(inviteCode.trim());
+
+      // Go straight to the game. This used to navigate to "/", which stranded
+      // the player with no way to reach the game they had just joined.
+      navigate(
+        game.status === "WAITING"
+          ? `/games/${game.id}/lobby`
+          : `/games/${game.id}`,
+      );
+    } catch (err) {
+      setError(getErrorMessage(err, "Unable to join that game."));
+    } finally {
+      setSubmitting(false);
     }
   }
 
   return (
-    <div>
+    <>
       <Navbar />
-      <div style={{ padding: "2rem" }}>
-        <h1>Join Game</h1>
-
-        <div>
-          <label>Invite Code</label>
-          <br />
-          <input
-            type="text"
-            value={inviteCode}
-            onChange={(e) => setInviteCode(e.target.value)}
-            style={{ padding: "0.5rem", marginTop: "0.25rem" }}
-          />
+      <div className="page page--narrow">
+        <div className="page__head">
+          <div className="page__title-group">
+            <h1>Join a game</h1>
+            <p className="muted small">
+              Enter the six-character code from whoever created the game.
+            </p>
+          </div>
         </div>
 
-        <br />
+        <div className="card">
+          <div className="card__body">
+            <form onSubmit={handleJoinGame} className="stack stack--tight">
+              {error && <div className="alert alert--error">{error}</div>}
 
-        <button
-          onClick={handleJoinGame}
-          style={{
-            padding: "0.75rem 1.5rem",
-            backgroundColor: "#28a745",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
-          Join Game
-        </button>
+              <div className="field">
+                <label className="label" htmlFor="inviteCode">
+                  Invite code
+                </label>
+                <input
+                  className="input input--ticker"
+                  id="inviteCode"
+                  type="text"
+                  maxLength={10}
+                  placeholder="A1B2C3"
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value)}
+                />
+              </div>
+
+              <div className="row">
+                <button
+                  className="btn btn--primary"
+                  type="submit"
+                  disabled={submitting}
+                >
+                  {submitting ? "Joining..." : "Join game"}
+                </button>
+                <button
+                  className="btn btn--ghost"
+                  type="button"
+                  onClick={() => navigate("/")}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

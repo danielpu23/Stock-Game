@@ -1,81 +1,82 @@
+import { directionClass, money } from "../utils/format";
+
 interface StockChartProps {
   symbol: string;
-  currentPrice: number;
-  previousPrice?: number;
+  price: number;
+  /** Prices observed this session, oldest first. */
+  history: number[];
 }
 
-export default function StockChart({ symbol, currentPrice, previousPrice }: StockChartProps) {
-  const change = previousPrice ? currentPrice - previousPrice : 0;
-  const changePercent = previousPrice ? (change / previousPrice) * 100 : 0;
-  const isPositive = change >= 0;
+/* Drawn in an arbitrary coordinate space and scaled to the container by the
+   viewBox, so the sparkline fits whatever width the trade panel has. */
+const VIEW_W = 300;
+const VIEW_H = 40;
+
+/**
+ * A sparkline of the quotes seen since this ticker was typed.
+ *
+ * The previous version drew a bar from a `previousPrice` prop that no caller
+ * ever passed, so it permanently displayed +0.00 (0.00%).
+ */
+export default function StockChart({ symbol, price, history }: StockChartProps) {
+  const first = history[0] ?? price;
+  const change = price - first;
+  const changePercent = first === 0 ? 0 : (change / first) * 100;
+  const direction = directionClass(change);
+  const hasTrend = history.length > 1;
 
   return (
-    <div style={{ 
-      padding: "1rem", 
-      border: "1px solid #ddd", 
-      borderRadius: "8px", 
-      marginTop: "1rem",
-      backgroundColor: "#f8f9fa"
-    }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h3 style={{ margin: 0 }}>{symbol}</h3>
-        <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
-            ${currentPrice.toFixed(2)}
+    <div className="trade__quote">
+      <div className="trade__quote-top">
+        <span className="ticker">{symbol}</span>
+        <span className="trade__quote-price">{money(price)}</span>
+      </div>
+
+      {hasTrend && (
+        <>
+          <svg
+            className="trade__spark"
+            viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+            preserveAspectRatio="none"
+            aria-label={`${symbol} price trend`}
+            role="img"
+          >
+            <polyline
+              points={toPoints(history)}
+              fill="none"
+              stroke={`var(--${direction})`}
+              strokeWidth="1.75"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              vectorEffect="non-scaling-stroke"
+            />
+          </svg>
+
+          <div className={`trade__quote-change ${direction}`}>
+            {change >= 0 ? "+" : ""}
+            {change.toFixed(2)} ({change >= 0 ? "+" : ""}
+            {changePercent.toFixed(2)}%) · {history.length} ticks
           </div>
-          <div style={{ 
-            color: isPositive ? "green" : "red",
-            fontSize: "0.9rem"
-          }}>
-            {isPositive ? "+" : ""}{change.toFixed(2)} ({isPositive ? "+" : ""}{changePercent.toFixed(2)}%)
-          </div>
-        </div>
-      </div>
-      
-      {/* Simple visual representation */}
-      <div style={{ marginTop: "1rem", height: "100px", position: "relative" }}>
-        <div style={{
-          position: "absolute",
-          left: "50%",
-          top: "0",
-          bottom: "0",
-          width: "2px",
-          backgroundColor: "#ddd"
-        }}></div>
-        
-        {/* Price bar */}
-        <div style={{
-          position: "absolute",
-          left: isPositive ? "50%" : `${50 - Math.min(Math.abs(changePercent), 50)}%`,
-          right: isPositive ? `${50 - Math.min(Math.abs(changePercent), 50)}%` : "50%",
-          top: "20%",
-          bottom: "20%",
-          backgroundColor: isPositive ? "#28a745" : "#dc3545",
-          borderRadius: "4px",
-          transition: "all 0.3s ease"
-        }}></div>
-        
-        {/* Previous price marker */}
-        {previousPrice && (
-          <div style={{
-            position: "absolute",
-            left: "50%",
-            top: "15%",
-            bottom: "15%",
-            width: "2px",
-            backgroundColor: "#666"
-          }}></div>
-        )}
-      </div>
-      
-      <div style={{ 
-        marginTop: "0.5rem", 
-        fontSize: "0.8rem", 
-        color: "#666",
-        textAlign: "center"
-      }}>
-        Real-time price from Finnhub API
-      </div>
+        </>
+      )}
     </div>
   );
+}
+
+/** Maps the series onto the viewBox, padded so a flat line still sits mid-height. */
+function toPoints(history: number[]): string {
+  const min = Math.min(...history);
+  const max = Math.max(...history);
+  const span = max - min || 1;
+  const step = VIEW_W / Math.max(history.length - 1, 1);
+  const padding = 4;
+  const usable = VIEW_H - padding * 2;
+
+  return history
+    .map((value, index) => {
+      const x = index * step;
+      const y = padding + usable - ((value - min) / span) * usable;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
 }
