@@ -30,6 +30,12 @@ export async function getResults(gameId: number): Promise<GameResult[]> {
   return response.data.leaderboard;
 }
 
+export async function getLeaderboard(gameId: number): Promise<GameResult[]> {
+  const response = await api.get(`/games/${gameId}/leaderboard`);
+
+  return response.data;
+}
+
 export async function buyStock(
   gameId: number,
   symbol: string,

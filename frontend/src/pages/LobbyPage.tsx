@@ -97,7 +97,17 @@ export default function LobbyPage() {
           Start Game
         </button>
 
-        {game.status !== "WAITING" && <p>Game has already started.</p>}
+        {game.status === "FINISHED" && (
+          <p style={{ color: "#856404", fontWeight: "bold" }}>
+            Game has finished. <a href={`/games/${GAME_ID}/results`}>View results</a>
+          </p>
+        )}
+        
+        {game.status === "IN_PROGRESS" && (
+          <p style={{ color: "#17a2b8", fontWeight: "bold" }}>
+            Game is currently in progress. <a href={`/games/${GAME_ID}`}>Join game</a>
+          </p>
+        )}
       </div>
     </div>
   );
