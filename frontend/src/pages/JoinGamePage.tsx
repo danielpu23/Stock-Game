@@ -2,6 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { joinGame } from "../api/gameApi";
 import Navbar from "../components/Navbar";
+import Button from "../components/ui/Button";
+import Input from "../components/ui/Input";
+import Card from "../components/ui/Card";
+import Layout from "../components/ui/Layout";
 
 export default function JoinGamePage() {
   const navigate = useNavigate();
@@ -24,38 +28,29 @@ export default function JoinGamePage() {
   }
 
   return (
-    <div>
+    <Layout>
       <Navbar />
-      <div style={{ padding: "2rem" }}>
-        <h1>Join Game</h1>
+      <div style={{ padding: "2rem", maxWidth: "600px", margin: "0 auto", width: "100%" }}>
+        <Card title="Join Game">
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            <div>
+              <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "500", color: "#333" }}>
+                Invite Code
+              </label>
+              <Input
+                type="text"
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value)}
+                placeholder="Enter invite code"
+              />
+            </div>
 
-        <div>
-          <label>Invite Code</label>
-          <br />
-          <input
-            type="text"
-            value={inviteCode}
-            onChange={(e) => setInviteCode(e.target.value)}
-            style={{ padding: "0.5rem", marginTop: "0.25rem" }}
-          />
-        </div>
-
-        <br />
-
-        <button
-          onClick={handleJoinGame}
-          style={{
-            padding: "0.75rem 1.5rem",
-            backgroundColor: "#28a745",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
-          Join Game
-        </button>
+            <Button onClick={handleJoinGame} variant="success">
+              Join Game
+            </Button>
+          </div>
+        </Card>
       </div>
-    </div>
+    </Layout>
   );
 }

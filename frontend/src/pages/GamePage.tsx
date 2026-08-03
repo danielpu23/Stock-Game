@@ -11,7 +11,14 @@ import PlayerTable from "../components/PlayerTable";
 import HoldingsTable from "../components/HoldingsTable";
 import Leaderboard from "../components/Leaderboard";
 import StockChart from "../components/StockChart";
+import PortfolioPieChart from "../components/PortfolioPieChart";
 import Navbar from "../components/Navbar";
+import Card from "../components/ui/Card";
+import Button from "../components/ui/Button";
+import Input from "../components/ui/Input";
+import Alert from "../components/ui/Alert";
+import Grid from "../components/ui/Grid";
+import Layout from "../components/ui/Layout";
 
 export default function GamePage() {
   const { gameId } = useParams();
@@ -167,256 +174,198 @@ export default function GamePage() {
   );
 
   return (
-    <div>
+    <Layout>
       <Navbar />
-      <div style={{ padding: "2rem" }}>
-        <h1>Stock Game</h1>
-        <h2>Status: {game.status}</h2>
+      <div style={{ padding: "2rem", maxWidth: "1400px", margin: "0 auto", width: "100%" }}>
+        <div style={{ marginBottom: "2rem" }}>
+          <h1 style={{ color: "#333", marginBottom: "0.5rem" }}>Stock Game</h1>
+          <p style={{ color: "#666", margin: 0 }}>Status: <strong>{game.status}</strong></p>
+        </div>
         
         {game.status === "FINISHED" && (
-          <div style={{ 
-            backgroundColor: "#fff3cd", 
-            color: "#856404", 
-            padding: "1rem", 
-            borderRadius: "4px", 
-            marginBottom: "1rem",
-            border: "1px solid #ffc107"
-          }}>
+          <Alert type="warning" style={{ marginBottom: "2rem" }}>
             <h3 style={{ margin: "0 0 0.5rem 0" }}>🎮 Game Over!</h3>
             <p style={{ margin: 0 }}>
               This game has finished. View the final results on the results page or return to the menu to start a new game.
             </p>
-            <div style={{ marginTop: "1rem" }}>
-              <button
-                onClick={() => navigate(`/games/${GAME_ID}/results`)}
-                style={{
-                  padding: "0.5rem 1rem",
-                  backgroundColor: "#17a2b8",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                  marginRight: "0.5rem"
-                }}
-              >
+            <div style={{ marginTop: "1rem", display: "flex", gap: "0.5rem" }}>
+              <Button onClick={() => navigate(`/games/${GAME_ID}/results`)} variant="info">
                 View Results
-              </button>
-              <button
-                onClick={() => navigate("/")}
-                style={{
-                  padding: "0.5rem 1rem",
-                  backgroundColor: "#6c757d",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer"
-                }}
-              >
+              </Button>
+              <Button onClick={() => navigate("/")} variant="secondary">
                 Back to Menu
-              </button>
+              </Button>
             </div>
-          </div>
+          </Alert>
         )}
         
-        {error && (
-          <div style={{ 
-            backgroundColor: "#f8d7da", 
-            color: "#721c24", 
-            padding: "1rem", 
-            borderRadius: "4px", 
-            marginBottom: "1rem" 
-          }}>
-            {error}
-          </div>
+        {error && <Alert type="error">{error}</Alert>}
+        {success && <Alert type="success">{success}</Alert>}
+        
+        <Grid columns={2} gap="1.5rem" style={{ marginBottom: "1.5rem" }}>
+          <Card title="Players">
+            <PlayerTable players={game.players} />
+          </Card>
+          
+          <Card title="Your Holdings">
+            {currentPlayer ? (
+              <HoldingsTable holdings={currentPlayer.holdings} />
+            ) : (
+              <p style={{ color: "#666" }}>Loading holdings...</p>
+            )}
+          </Card>
+        </Grid>
+        
+        {currentPlayer && (
+          <Card title="Portfolio Distribution" style={{ marginBottom: "1.5rem" }}>
+            <PortfolioPieChart 
+              cashBalance={currentPlayer.cashBalance} 
+              holdings={currentPlayer.holdings.map(h => ({
+                symbol: h.symbol,
+                quantity: h.quantity
+              }))}
+            />
+          </Card>
         )}
         
-        {success && (
-          <div style={{ 
-            backgroundColor: "#d4edda", 
-            color: "#155724", 
-            padding: "1rem", 
-            borderRadius: "4px", 
-            marginBottom: "1rem" 
-          }}>
-            {success}
-          </div>
+        {leaderboard && (
+          <Card title="Leaderboard" style={{ marginBottom: "1.5rem" }}>
+            <Leaderboard leaderboard={leaderboard} />
+          </Card>
         )}
-        
-        <PlayerTable players={game.players} />
-        <h2>Your Holdings</h2>
-        {currentPlayer && <HoldingsTable holdings={currentPlayer.holdings} />}
-        {leaderboard && <Leaderboard leaderboard={leaderboard} />}
         
         {game.status !== "FINISHED" && (
-          <>
-            <hr />
-            <h2>Buy Stock</h2>
-            <input
-              type="text"
-              placeholder="Ticker"
-              value={buySymbol}
-              onChange={(e) => {
-                setBuySymbol(e.target.value);
-                fetchStockPrice(e.target.value);
-              }}
-              style={{ padding: "0.5rem", marginRight: "0.5rem" }}
-            />
+          <Grid columns={2} gap="1.5rem">
+            <Card title="Buy Stock">
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                  <Input
+                    type="text"
+                    placeholder="Ticker"
+                    value={buySymbol}
+                    onChange={(e) => {
+                      setBuySymbol(e.target.value);
+                      fetchStockPrice(e.target.value);
+                    }}
+                    style={{ flex: 1, minWidth: "120px" }}
+                  />
+                  <Input
+                    type="number"
+                    min={1}
+                    value={buyQuantity}
+                    onChange={(e) => setBuyQuantity(Number(e.target.value))}
+                    style={{ width: "100px" }}
+                  />
+                </div>
 
-            <input
-              type="number"
-              min={1}
-              value={buyQuantity}
-              onChange={(e) => setBuyQuantity(Number(e.target.value))}
-              style={{ padding: "0.5rem", marginRight: "0.5rem" }}
-            />
-
-            {stockPrice !== null && (
-              <>
-                <span style={{ marginLeft: "1rem", fontWeight: "bold" }}>
-                  ${stockPrice.toFixed(2)}
-                </span>
-                <StockChart 
-                  symbol={buySymbol.toUpperCase()} 
-                  currentPrice={stockPrice}
-                />
-              </>
-            )}
-
-            <button
-              onClick={handleBuy}
-              style={{
-                padding: "0.5rem 1rem",
-                backgroundColor: "#28a745",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                marginLeft: "1rem",
-              }}
-            >
-              Buy
-            </button>
-
-            <hr />
-
-            <h2>Sell Stock</h2>
-            <input
-              type="text"
-              placeholder="Ticker"
-              value={sellSymbol}
-              onChange={(e) => {
-                setSellSymbol(e.target.value);
-                fetchStockPrice(e.target.value);
-              }}
-              style={{ padding: "0.5rem", marginRight: "0.5rem" }}
-            />
-            <input
-              type="number"
-              min={1}
-              value={sellQuantity}
-              onChange={(e) => setSellQuantity(Number(e.target.value))}
-              style={{ padding: "0.5rem", marginRight: "0.5rem" }}
-            />
-
-            {stockPrice !== null && (
-              <>
-                <span style={{ marginLeft: "1rem", fontWeight: "bold" }}>
-                  ${stockPrice.toFixed(2)}
-                </span>
-                <StockChart 
-                  symbol={sellSymbol.toUpperCase()} 
-                  currentPrice={stockPrice}
-                />
-              </>
-            )}
-
-            <button
-              onClick={handleSell}
-              style={{
-                padding: "0.5rem 1rem",
-                backgroundColor: "#dc3545",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                marginLeft: "1rem",
-              }}
-            >
-              Sell
-            </button>
-
-            <hr />
-
-            <button
-              onClick={handleFinishGame}
-              style={{
-                padding: "0.75rem 1.5rem",
-                backgroundColor: "#6c757d",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
-            >
-              Finish Game
-            </button>
-
-            <hr />
-
-            <button
-              onClick={toggleTransactions}
-              style={{
-                padding: "0.5rem 1rem",
-                backgroundColor: "#17a2b8",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
-            >
-              {showTransactions ? "Hide Transactions" : "Show Transactions"}
-            </button>
-
-            {showTransactions && transactions && (
-              <div style={{ marginTop: "1rem" }}>
-                <h3>Transaction History</h3>
-                {transactions.length === 0 ? (
-                  <p>No transactions yet.</p>
-                ) : (
-                  <table style={{ borderCollapse: "collapse", width: "100%" }}>
-                    <thead>
-                      <tr style={{ borderBottom: "2px solid #ddd" }}>
-                        <th style={{ padding: "8px", textAlign: "left" }}>Type</th>
-                        <th style={{ padding: "8px", textAlign: "left" }}>Symbol</th>
-                        <th style={{ padding: "8px", textAlign: "right" }}>Quantity</th>
-                        <th style={{ padding: "8px", textAlign: "right" }}>Price</th>
-                        <th style={{ padding: "8px", textAlign: "right" }}>Time</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {transactions.map((tx) => (
-                        <tr key={tx.id} style={{ borderBottom: "1px solid #ddd" }}>
-                          <td style={{ padding: "8px" }}>{tx.type}</td>
-                          <td style={{ padding: "8px" }}>{tx.symbol}</td>
-                          <td style={{ padding: "8px", textAlign: "right" }}>
-                            {tx.quantity}
-                          </td>
-                          <td style={{ padding: "8px", textAlign: "right" }}>
-                            ${tx.price.toFixed(2)}
-                          </td>
-                          <td style={{ padding: "8px", textAlign: "right" }}>
-                            {new Date(tx.createdAt).toLocaleTimeString()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                {stockPrice !== null && (
+                  <>
+                    <div style={{ fontWeight: "bold", color: "#333" }}>
+                      Current Price: ${stockPrice.toFixed(2)}
+                    </div>
+                    <StockChart 
+                      symbol={buySymbol.toUpperCase()} 
+                      currentPrice={stockPrice}
+                    />
+                  </>
                 )}
+
+                <Button onClick={handleBuy} variant="success">
+                  Buy Stock
+                </Button>
               </div>
+            </Card>
+
+            <Card title="Sell Stock">
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                  <Input
+                    type="text"
+                    placeholder="Ticker"
+                    value={sellSymbol}
+                    onChange={(e) => {
+                      setSellSymbol(e.target.value);
+                      fetchStockPrice(e.target.value);
+                    }}
+                    style={{ flex: 1, minWidth: "120px" }}
+                  />
+                  <Input
+                    type="number"
+                    min={1}
+                    value={sellQuantity}
+                    onChange={(e) => setSellQuantity(Number(e.target.value))}
+                    style={{ width: "100px" }}
+                  />
+                </div>
+
+                {stockPrice !== null && (
+                  <>
+                    <div style={{ fontWeight: "bold", color: "#333" }}>
+                      Current Price: ${stockPrice.toFixed(2)}
+                    </div>
+                    <StockChart 
+                      symbol={sellSymbol.toUpperCase()} 
+                      currentPrice={stockPrice}
+                    />
+                  </>
+                )}
+
+                <Button onClick={handleSell} variant="danger">
+                  Sell Stock
+                </Button>
+              </div>
+            </Card>
+          </Grid>
+        )}
+        
+        {game.status !== "FINISHED" && (
+          <div style={{ marginTop: "1.5rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+            <Button onClick={handleFinishGame} variant="secondary">
+              Finish Game
+            </Button>
+            <Button onClick={toggleTransactions} variant="info">
+              {showTransactions ? "Hide Transactions" : "Show Transactions"}
+            </Button>
+          </div>
+        )}
+
+        {showTransactions && transactions && (
+          <Card title="Transaction History" style={{ marginTop: "1.5rem" }}>
+            {transactions.length === 0 ? (
+              <p style={{ color: "#666" }}>No transactions yet.</p>
+            ) : (
+              <table style={{ borderCollapse: "collapse", width: "100%" }}>
+                <thead>
+                  <tr style={{ borderBottom: "2px solid #ddd" }}>
+                    <th style={{ padding: "8px", textAlign: "left" }}>Type</th>
+                    <th style={{ padding: "8px", textAlign: "left" }}>Symbol</th>
+                    <th style={{ padding: "8px", textAlign: "right" }}>Quantity</th>
+                    <th style={{ padding: "8px", textAlign: "right" }}>Price</th>
+                    <th style={{ padding: "8px", textAlign: "right" }}>Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {transactions.map((tx) => (
+                    <tr key={tx.id} style={{ borderBottom: "1px solid #ddd" }}>
+                      <td style={{ padding: "8px" }}>{tx.type}</td>
+                      <td style={{ padding: "8px" }}>{tx.symbol}</td>
+                      <td style={{ padding: "8px", textAlign: "right" }}>
+                        {tx.quantity}
+                      </td>
+                      <td style={{ padding: "8px", textAlign: "right" }}>
+                        ${tx.price.toFixed(2)}
+                      </td>
+                      <td style={{ padding: "8px", textAlign: "right" }}>
+                        {new Date(tx.createdAt).toLocaleTimeString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             )}
-          </>
+          </Card>
         )}
       </div>
-    </div>
+    </Layout>
   );
 }

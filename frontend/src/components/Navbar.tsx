@@ -1,5 +1,6 @@
 import { logout, getUser } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
+import Button from "./ui/Button";
 
 export default function Navbar() {
   const user = getUser();
@@ -8,50 +9,30 @@ export default function Navbar() {
   return (
     <nav
       style={{
-        backgroundColor: "#f8f9fa",
-        padding: "1rem",
-        borderBottom: "1px solid #dee2e6",
+        backgroundColor: "white",
+        padding: "1rem 2rem",
+        borderBottom: "2px solid #e0e0e0",
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
+        boxShadow: "0 2px 4px rgba(0,0,0,0.05)"
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-        <button
-          onClick={() => navigate("/")}
-          style={{
-            padding: "0.5rem 1rem",
-            backgroundColor: "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontWeight: "bold",
-          }}
-        >
+        <Button onClick={() => navigate("/")} variant="primary">
           🏠 Menu
-        </button>
-        <h3 style={{ margin: 0 }}>Stock Game</h3>
+        </Button>
+        <h3 style={{ margin: 0, color: "#333", fontSize: "1.5rem" }}>Stock Game</h3>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
         {user && (
-          <span style={{ fontWeight: "bold" }}>
+          <span style={{ fontWeight: "600", color: "#555", fontSize: "1rem" }}>
             Welcome, {user.username}
           </span>
         )}
-        <button
-          onClick={logout}
-          style={{
-            padding: "0.5rem 1rem",
-            backgroundColor: "#dc3545",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
+        <Button onClick={logout} variant="danger">
           Logout
-        </button>
+        </Button>
       </div>
     </nav>
   );

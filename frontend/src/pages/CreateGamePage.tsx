@@ -3,6 +3,10 @@ import { useNavigate } from "react-router-dom";
 
 import { createGame } from "../api/gameApi";
 import Navbar from "../components/Navbar";
+import Button from "../components/ui/Button";
+import Input from "../components/ui/Input";
+import Card from "../components/ui/Card";
+import Layout from "../components/ui/Layout";
 
 export default function CreateGamePage() {
   const navigate = useNavigate();
@@ -33,55 +37,41 @@ export default function CreateGamePage() {
   }
 
   return (
-    <div>
+    <Layout>
       <Navbar />
-      <div style={{ padding: "2rem" }}>
-        <h1>Create Game</h1>
+      <div style={{ padding: "2rem", maxWidth: "600px", margin: "0 auto", width: "100%" }}>
+        <Card title="Create Game">
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            <div>
+              <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "500", color: "#333" }}>
+                Game Name
+              </label>
+              <Input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter game name"
+              />
+            </div>
 
-        <div>
-          <label>Game Name</label>
+            <div>
+              <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "500", color: "#333" }}>
+                Starting Cash
+              </label>
+              <Input
+                type="number"
+                value={initialCash}
+                onChange={(e) => setInitialCash(Number(e.target.value))}
+                min={1}
+              />
+            </div>
 
-          <br />
-
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            style={{ padding: "0.5rem", marginTop: "0.25rem" }}
-          />
-        </div>
-
-        <br />
-
-        <div>
-          <label>Starting Cash</label>
-
-          <br />
-
-          <input
-            type="number"
-            value={initialCash}
-            onChange={(e) => setInitialCash(Number(e.target.value))}
-            style={{ padding: "0.5rem", marginTop: "0.25rem" }}
-          />
-        </div>
-
-        <br />
-
-        <button
-          onClick={handleCreateGame}
-          style={{
-            padding: "0.75rem 1.5rem",
-            backgroundColor: "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
-          Create Game
-        </button>
+            <Button onClick={handleCreateGame} variant="primary">
+              Create Game
+            </Button>
+          </div>
+        </Card>
       </div>
-    </div>
+    </Layout>
   );
 }
