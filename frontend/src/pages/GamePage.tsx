@@ -6,6 +6,7 @@ import { getStockPrice } from "../api/stockApi";
 import type { GameState } from "../types/game";
 import type { GameResult } from "../types/result";
 import { getUser } from "../utils/auth";
+import { isMarketHours, getMarketStatusMessage } from "../utils/marketHours";
 
 import PlayerTable from "../components/PlayerTable";
 import HoldingsTable from "../components/HoldingsTable";
@@ -39,6 +40,7 @@ export default function GamePage() {
   const [stockPrice, setStockPrice] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [marketOpen, setMarketOpen] = useState(isMarketHours());
 
   async function loadGame() {
     try {
@@ -57,12 +59,26 @@ export default function GamePage() {
   useEffect(() => {
     loadGame();
     const interval = setInterval(loadGame, 5000); // Refresh every 5 seconds
-    return () => clearInterval(interval);
+    
+    // Check market hours every minute
+    const marketInterval = setInterval(() => {
+      setMarketOpen(isMarketHours());
+    }, 60000);
+    
+    return () => {
+      clearInterval(interval);
+      clearInterval(marketInterval);
+    };
   }, []);
 
   async function handleBuy() {
     setError(null);
     setSuccess(null);
+    
+    if (!marketOpen) {
+      setError("Trading is only available during market hours (9:30 AM - 4:00 PM ET, Monday - Friday)");
+      return;
+    }
     
     if (!buySymbol.trim()) {
       setError("Please enter a stock symbol");
@@ -90,6 +106,11 @@ export default function GamePage() {
   async function handleSell() {
     setError(null);
     setSuccess(null);
+    
+    if (!marketOpen) {
+      setError("Trading is only available during market hours (9:30 AM - 4:00 PM ET, Monday - Friday)");
+      return;
+    }
     
     if (!sellSymbol.trim()) {
       setError("Please enter a stock symbol");
@@ -202,6 +223,10 @@ export default function GamePage() {
         {error && <Alert type="error">{error}</Alert>}
         {success && <Alert type="success">{success}</Alert>}
         
+        <Alert type={marketOpen ? "success" : "warning"}>
+          {getMarketStatusMessage()}
+        </Alert>
+        
         <Grid columns={2} gap="1.5rem" style={{ marginBottom: "1.5rem" }}>
           <Card title="Players">
             <PlayerTable players={game.players} />
@@ -244,8 +269,9 @@ export default function GamePage() {
                     placeholder="Ticker"
                     value={buySymbol}
                     onChange={(e) => {
-                      setBuySymbol(e.target.value);
-                      fetchStockPrice(e.target.value);
+                      const uppercased = e.target.value.toUpperCase();
+                      setBuySymbol(uppercased);
+                      fetchStockPrice(uppercased);
                     }}
                     style={{ flex: 1, minWidth: "120px" }}
                   />
@@ -270,8 +296,8 @@ export default function GamePage() {
                   </>
                 )}
 
-                <Button onClick={handleBuy} variant="success">
-                  Buy Stock
+                <Button onClick={handleBuy} variant="success" disabled={!marketOpen}>
+                  {marketOpen ? "Buy Stock" : "Market Closed"}
                 </Button>
               </div>
             </Card>
@@ -284,8 +310,9 @@ export default function GamePage() {
                     placeholder="Ticker"
                     value={sellSymbol}
                     onChange={(e) => {
-                      setSellSymbol(e.target.value);
-                      fetchStockPrice(e.target.value);
+                      const uppercased = e.target.value.toUpperCase();
+                      setSellSymbol(uppercased);
+                      fetchStockPrice(uppercased);
                     }}
                     style={{ flex: 1, minWidth: "120px" }}
                   />
@@ -310,8 +337,8 @@ export default function GamePage() {
                   </>
                 )}
 
-                <Button onClick={handleSell} variant="danger">
-                  Sell Stock
+                <Button onClick={handleSell} variant="danger" disabled={!marketOpen}>
+                  {marketOpen ? "Sell Stock" : "Market Closed"}
                 </Button>
               </div>
             </Card>

@@ -8,7 +8,27 @@ export const setToken = (token: string): void => {
 };
 
 export const getToken = (): string | null => {
-  return localStorage.getItem(TOKEN_KEY);
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token) return null;
+  
+  // Check if token is expired
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const exp = payload.exp;
+    if (exp && Date.now() >= exp * 1000) {
+      // Token expired, remove it
+      removeToken();
+      removeUser();
+      return null;
+    }
+  } catch (e) {
+    // Invalid token format
+    removeToken();
+    removeUser();
+    return null;
+  }
+  
+  return token;
 };
 
 export const setUser = (user: User): void => {

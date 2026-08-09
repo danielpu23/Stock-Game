@@ -34,6 +34,7 @@ export default function Button({ children, onClick, disabled, variant = "primary
     ...baseStyle,
     cursor: disabled ? "not-allowed" : "pointer",
     opacity: disabled ? 0.6 : 1,
+    pointerEvents: disabled ? "none" : "auto",
     ...variants[variant],
     ...style
   };

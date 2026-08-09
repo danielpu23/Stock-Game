@@ -76,7 +76,7 @@ public class GameSessionController {
         service.buyStock(
                 id,
                 currentUserService.getCurrentUser().getId(),
-                request.getSymbol(),
+                request.getSymbol().toUpperCase(),
                 request.getQuantity()
         );
         return "Stock purchased successfully";
@@ -96,7 +96,7 @@ public class GameSessionController {
         service.sellStock(
                 id,
                 currentUserService.getCurrentUser().getId(),
-                request.getSymbol(),
+                request.getSymbol().toUpperCase(),
                 request.getQuantity()
         );
 

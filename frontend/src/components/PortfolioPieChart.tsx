@@ -32,11 +32,11 @@ export default function PortfolioPieChart({ cashBalance, holdings }: PortfolioPi
         const prices: Record<string, number> = {};
         const promises = holdings.map(async (holding) => {
           try {
-            const price = await getStockPrice(holding.symbol);
-            prices[holding.symbol] = price;
+            const price = await getStockPrice(holding.symbol.toUpperCase());
+            prices[holding.symbol.toUpperCase()] = price;
           } catch (error) {
             console.error(`Failed to fetch price for ${holding.symbol}:`, error);
-            prices[holding.symbol] = 0;
+            prices[holding.symbol.toUpperCase()] = 0;
           }
         });
         
@@ -63,11 +63,11 @@ export default function PortfolioPieChart({ cashBalance, holdings }: PortfolioPi
 
   // Add holdings with their current values
   holdings.forEach((holding, index) => {
-    const currentPrice = stockPrices[holding.symbol] || holding.currentPrice || 0;
+    const currentPrice = stockPrices[holding.symbol.toUpperCase()] || holding.currentPrice || 0;
     const holdingValue = holding.quantity * currentPrice;
     if (holdingValue > 0) {
       portfolioData.push({
-        label: holding.symbol,
+        label: holding.symbol.toUpperCase(),
         value: holdingValue,
         color: generateColors(holdings.length)[index]
       });
