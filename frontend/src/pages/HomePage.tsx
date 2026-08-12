@@ -15,6 +15,7 @@ export default function HomePage() {
           <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
             <Button as="a" href="/create" variant="primary">Create Game</Button>
             <Button as="a" href="/join" variant="success">Join Game</Button>
+            <Button as="a" href="/my-games" variant="secondary">My Games</Button>
           </div>
         </Card>
       </div>

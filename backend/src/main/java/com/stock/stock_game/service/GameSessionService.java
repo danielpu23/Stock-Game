@@ -511,4 +511,8 @@ public class GameSessionService {
 
         return response;
   }
+
+  public List<GameSession> getUserGames(Long userId) {
+      return gameSessionRepository.findByCreatedById(userId);
+  }
 }

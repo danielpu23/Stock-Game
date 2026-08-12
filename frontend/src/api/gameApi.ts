@@ -83,3 +83,8 @@ export async function finishGame(gameId: number): Promise<Game> {
   const response = await api.post(`/games/${gameId}/finish`);
   return response.data;
 }
+
+export async function getMyGames(): Promise<Game[]> {
+  const response = await api.get("/games/my-games");
+  return response.data;
+}

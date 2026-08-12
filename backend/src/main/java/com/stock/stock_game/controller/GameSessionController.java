@@ -120,4 +120,20 @@ public class GameSessionController {
             @PathVariable Long id) {
         return service.getGameResults(id);
     }
+
+    @GetMapping("/my-games")
+    public List<GameResponse> getUserGames() {
+        List<GameSession> games = service.getUserGames(currentUserService.getCurrentUser().getId());
+        return games.stream()
+            .map(game -> {
+                GameResponse response = new GameResponse();
+                response.setId(game.getId());
+                response.setName(game.getName());
+                response.setInviteCode(game.getInviteCode());
+                response.setStatus(game.getStatus());
+                response.setPlayers(null); // Don't load players for list view
+                return response;
+            })
+            .collect(java.util.stream.Collectors.toList());
+    }
 }

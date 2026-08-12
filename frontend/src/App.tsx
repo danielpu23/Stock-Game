@@ -8,6 +8,7 @@ import JoinGamePage from "./pages/JoinGamePage";
 import LobbyPage from "./pages/LobbyPage";
 import GamePage from "./pages/GamePage";
 import ResultsPage from "./pages/ResultsPage";
+import MyGamesPage from "./pages/MyGamesPage";
 
 // Protected Route wrapper
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -42,6 +43,15 @@ export default function App() {
         element={
           <ProtectedRoute>
             <JoinGamePage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/my-games"
+        element={
+          <ProtectedRoute>
+            <MyGamesPage />
           </ProtectedRoute>
         }
       />
