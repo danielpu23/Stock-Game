@@ -56,6 +56,7 @@ export default function LoginPage() {
           <label htmlFor="username">Username:</label>
           <input
             id="username"
+            data-testid="username-input"
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
@@ -68,6 +69,7 @@ export default function LoginPage() {
             <label htmlFor="email">Email:</label>
             <input
               id="email"
+              data-testid="email-input"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -84,6 +86,7 @@ export default function LoginPage() {
           <label htmlFor="password">Password:</label>
           <input
             id="password"
+            data-testid="password-input"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -93,6 +96,7 @@ export default function LoginPage() {
         </div>
         <button
           type="submit"
+          data-testid="submit-button"
           style={{
             width: "100%",
             padding: "0.75rem",

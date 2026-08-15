@@ -86,12 +86,12 @@ export default function MyGamesPage() {
         {error && <Alert type="error">{error}</Alert>}
         
         {games.length === 0 ? (
-          <Card>
+          <Card data-testid="empty-state">
             <p style={{ color: "#666", textAlign: "center", padding: "2rem" }}>
               You haven't created any games yet. Start by creating a new game!
             </p>
             <div style={{ textAlign: "center", marginTop: "1rem" }}>
-              <Button onClick={() => navigate("/create")} variant="primary">
+              <Button onClick={() => navigate("/create")} variant="primary" data-testid="create-first-game-btn">
                 Create Your First Game
               </Button>
             </div>
@@ -99,7 +99,7 @@ export default function MyGamesPage() {
         ) : (
           <div style={{ display: "grid", gap: "1rem" }}>
             {games.map((game) => (
-              <Card key={game.id} style={{ 
+              <Card key={game.id} data-testid="game-card" style={{ 
                 borderLeft: `4px solid ${getStatusColor(game.status)}`,
                 cursor: "pointer",
                 transition: "transform 0.2s ease"

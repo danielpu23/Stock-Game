@@ -13,9 +13,9 @@ export default function HomePage() {
           <p style={{ color: "#666", marginBottom: "2rem" }}>Welcome to the Stock Game!</p>
           
           <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-            <Button as="a" href="/create" variant="primary">Create Game</Button>
-            <Button as="a" href="/join" variant="success">Join Game</Button>
-            <Button as="a" href="/my-games" variant="secondary">My Games</Button>
+            <Button as="a" href="/create" variant="primary" data-testid="create-game-btn">Create Game</Button>
+            <Button as="a" href="/join" variant="success" data-testid="join-game-btn">Join Game</Button>
+            <Button as="a" href="/my-games" variant="secondary" data-testid="my-games-btn">My Games</Button>
           </div>
         </Card>
       </div>

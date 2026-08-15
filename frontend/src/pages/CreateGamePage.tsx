@@ -48,6 +48,7 @@ export default function CreateGamePage() {
               </label>
               <Input
                 type="text"
+                data-testid="game-name-input"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter game name"
@@ -60,13 +61,14 @@ export default function CreateGamePage() {
               </label>
               <Input
                 type="number"
+                data-testid="initial-cash-input"
                 value={initialCash}
                 onChange={(e) => setInitialCash(Number(e.target.value))}
                 min={1}
               />
             </div>
 
-            <Button onClick={handleCreateGame} variant="primary">
+            <Button onClick={handleCreateGame} variant="primary" data-testid="create-game-submit-btn">
               Create Game
             </Button>
           </div>

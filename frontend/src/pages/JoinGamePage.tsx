@@ -39,13 +39,14 @@ export default function JoinGamePage() {
               </label>
               <Input
                 type="text"
+                data-testid="invite-code-input"
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value)}
                 placeholder="Enter invite code"
               />
             </div>
 
-            <Button onClick={handleJoinGame} variant="success">
+            <Button onClick={handleJoinGame} variant="success" data-testid="join-game-submit-btn">
               Join Game
             </Button>
           </div>
