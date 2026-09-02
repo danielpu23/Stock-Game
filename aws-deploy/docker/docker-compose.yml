@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  stock-game:
+    build:
+      context: ../..
+      dockerfile: aws-deploy/docker/Dockerfile
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/stock_game
+      - DATABASE_USERNAME=postgres
+      - DATABASE_PASSWORD=postgres
+      - JWT_SECRET=your-jwt-secret-change-this
+      - JWT_EXPIRATION=86400000
+      - STOCK_API_KEY=cu7id19r01qkucct2r5gcu7id19r01qkucct2r60
+      - CORS_ALLOWED_ORIGINS=http://localhost,https://localhost
+    depends_on:
+      - postgres
+    networks:
+      - stock-game-network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=stock_game
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - stock-game-network
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+
+networks:
+  stock-game-network:
+    driver: bridge

@@ -99,36 +99,39 @@ export default function MyGamesPage() {
         ) : (
           <div style={{ display: "grid", gap: "1rem" }}>
             {games.map((game) => (
-              <Card key={game.id} data-testid="game-card" style={{ 
-                borderLeft: `4px solid ${getStatusColor(game.status)}`,
-                cursor: "pointer",
-                transition: "transform 0.2s ease"
-              }}
-              onClick={() => handleGameClick(game)}
-              onMouseEnter={(e) => e.currentTarget.style.transform = "translateX(4px)"}
-              onMouseLeave={(e) => e.currentTarget.style.transform = "translateX(0)"}
+              <div 
+                key={game.id} 
+                data-testid="game-card"
+                onClick={() => handleGameClick(game)}
+                onMouseEnter={(e: React.MouseEvent) => (e.currentTarget as HTMLElement).style.transform = "translateX(4px)"}
+                onMouseLeave={(e: React.MouseEvent) => (e.currentTarget as HTMLElement).style.transform = "translateX(0)"}
+                style={{ 
+                  cursor: "pointer",
+                  transition: "transform 0.2s ease"
+                }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div>
-                    <h3 style={{ margin: "0 0 0.5rem 0", color: "#333" }}>{game.name}</h3>
-                    <div style={{ display: "flex", gap: "1rem", color: "#666", fontSize: "0.9rem" }}>
-                      <span>Code: <strong>{game.inviteCode}</strong></span>
-                      <span>Status: <strong style={{ color: getStatusColor(game.status) }}>
-                        {getStatusText(game.status)}
-                      </strong></span>
+                <Card style={{ 
+                  borderLeft: `4px solid ${getStatusColor(game.status)}`
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div>
+                      <h3 style={{ margin: "0 0 0.5rem 0", color: "#333" }}>{game.name}</h3>
+                      <div style={{ display: "flex", gap: "1rem", color: "#666", fontSize: "0.9rem" }}>
+                        <span>Code: <strong>{game.inviteCode}</strong></span>
+                        <span>Status: <strong style={{ color: getStatusColor(game.status) }}>
+                          {getStatusText(game.status)}
+                        </strong></span>
+                      </div>
                     </div>
+                    <Button 
+                      variant="primary" 
+                      onClick={() => handleGameClick(game)}
+                    >
+                      {getActionText(game.status)}
+                    </Button>
                   </div>
-                  <Button 
-                    variant="primary" 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleGameClick(game);
-                    }}
-                  >
-                    {getActionText(game.status)}
-                  </Button>
-                </div>
-              </Card>
+                </Card>
+              </div>
             ))}
           </div>
         )}

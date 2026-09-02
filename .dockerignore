@@ -1,0 +1,37 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+
+# AWS deployment files (not needed in Docker)
+aws-deploy
+
+# IDE
+.idea
+.vscode
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+backend/target
+frontend/node_modules
+frontend/dist
+frontend/.env
+frontend/.env.local
+frontend/.env.production
+
+# Logs
+*.log
+
+# Maven
+.mvn
+mvnw
+mvnw.cmd
+
+# Tests
+backend/src/test
