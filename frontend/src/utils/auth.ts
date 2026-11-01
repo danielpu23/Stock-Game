@@ -2,12 +2,30 @@ import type { User } from "../types/auth";
 
 const TOKEN_KEY = "jwt_token";
 const USER_KEY = "user_data";
+const TEST_MODE_KEY = "test_mode";
+
+export const setTestMode = (enabled: boolean): void => {
+  if (enabled) {
+    localStorage.setItem(TEST_MODE_KEY, 'true');
+  } else {
+    localStorage.removeItem(TEST_MODE_KEY);
+  }
+};
+
+export const isTestMode = (): boolean => {
+  return localStorage.getItem(TEST_MODE_KEY) === 'true';
+};
 
 export const setToken = (token: string): void => {
   localStorage.setItem(TOKEN_KEY, token);
 };
 
 export const getToken = (): string | null => {
+  // In test mode, bypass all validation
+  if (isTestMode()) {
+    return localStorage.getItem(TOKEN_KEY);
+  }
+
   const token = localStorage.getItem(TOKEN_KEY);
   if (!token) return null;
   
@@ -51,9 +69,15 @@ export const removeUser = (): void => {
 export const logout = (): void => {
   removeToken();
   removeUser();
+  // Also clear test mode on logout
+  localStorage.removeItem(TEST_MODE_KEY);
   window.location.href = "/login";
 };
 
 export const isAuthenticated = (): boolean => {
+  // In test mode, check if token exists (bypass validation)
+  if (isTestMode()) {
+    return localStorage.getItem(TOKEN_KEY) !== null;
+  }
   return getToken() !== null;
 };

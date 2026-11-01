@@ -3,10 +3,8 @@ describe('Authentication Flow', () => {
     cy.visit('/');
   });
 
-  it('should display home page with main action buttons', () => {
-    cy.get('[data-testid="create-game-btn"]').should('be.visible');
-    cy.get('[data-testid="join-game-btn"]').should('be.visible');
-    cy.get('[data-testid="my-games-btn"]').should('be.visible');
+  it('should redirect to login when not authenticated', () => {
+    cy.url().should('include', '/login');
   });
 
   it('should navigate to login page', () => {
@@ -15,9 +13,9 @@ describe('Authentication Flow', () => {
     cy.contains('h1', 'Login').should('be.visible');
   });
 
-  it('should navigate to register page', () => {
-    cy.visit('/register');
-    cy.url().should('include', '/register');
+  it('should toggle to register page', () => {
+    cy.visit('/login');
+    cy.contains('button', 'Register').click();
     cy.contains('h1', 'Register').should('be.visible');
   });
 
@@ -29,7 +27,8 @@ describe('Authentication Flow', () => {
   });
 
   it('should display register form with required fields', () => {
-    cy.visit('/register');
+    cy.visit('/login');
+    cy.contains('button', 'Register').click();
     cy.get('[data-testid="username-input"]').should('be.visible');
     cy.get('[data-testid="email-input"]').should('be.visible');
     cy.get('[data-testid="password-input"]').should('be.visible');
@@ -43,8 +42,9 @@ describe('Authentication Flow', () => {
   });
 
   it('should show validation error when register fields are empty', () => {
-    cy.visit('/register');
+    cy.visit('/login');
+    cy.contains('button', 'Register').click();
     cy.get('[data-testid="submit-button"]').click();
-    cy.url().should('include', '/register');
+    cy.url().should('include', '/login');
   });
 });

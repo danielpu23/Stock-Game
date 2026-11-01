@@ -27,7 +27,6 @@ export function getNextMarketOpen(): Date {
     now.toLocaleString("en-US", { timeZone: "America/New_York" }),
   );
 
-  const day = easternTime.getDay();
   const hours = easternTime.getHours();
   const minutes = easternTime.getMinutes();
   const currentTime = hours + minutes / 60;

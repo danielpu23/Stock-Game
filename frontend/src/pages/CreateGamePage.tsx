@@ -48,10 +48,10 @@ export default function CreateGamePage() {
               </label>
               <Input
                 type="text"
-                data-testid="game-name-input"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter game name"
+                data-testid="game-name-input"
               />
             </div>
 

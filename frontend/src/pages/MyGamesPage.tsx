@@ -99,15 +99,19 @@ export default function MyGamesPage() {
         ) : (
           <div style={{ display: "grid", gap: "1rem" }}>
             {games.map((game) => (
-              <Card key={game.id} data-testid="game-card" style={{ 
-                borderLeft: `4px solid ${getStatusColor(game.status)}`,
-                cursor: "pointer",
-                transition: "transform 0.2s ease"
-              }}
-              onClick={() => handleGameClick(game)}
-              onMouseEnter={(e) => e.currentTarget.style.transform = "translateX(4px)"}
-              onMouseLeave={(e) => e.currentTarget.style.transform = "translateX(0)"}
+              <div 
+                key={game.id} 
+                onClick={() => handleGameClick(game)}
+                onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.transform = "translateX(4px)"}
+                onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.transform = "translateX(0)"}
+                style={{ 
+                  cursor: "pointer",
+                  transition: "transform 0.2s ease"
+                }}
               >
+                <Card data-testid={`game-card-${game.id}`} style={{ 
+                  borderLeft: `4px solid ${getStatusColor(game.status)}`
+                }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
                     <h3 style={{ margin: "0 0 0.5rem 0", color: "#333" }}>{game.name}</h3>
@@ -120,15 +124,13 @@ export default function MyGamesPage() {
                   </div>
                   <Button 
                     variant="primary" 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleGameClick(game);
-                    }}
+                    onClick={() => handleGameClick(game)}
                   >
                     {getActionText(game.status)}
                   </Button>
                 </div>
               </Card>
+              </div>
             ))}
           </div>
         )}

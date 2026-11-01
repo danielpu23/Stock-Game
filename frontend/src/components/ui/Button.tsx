@@ -1,6 +1,6 @@
 interface ButtonProps {
   children: React.ReactNode;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
   disabled?: boolean;
   variant?: "primary" | "secondary" | "success" | "danger" | "warning" | "info";
   style?: React.CSSProperties;
@@ -34,7 +34,7 @@ export default function Button({ children, onClick, disabled, variant = "primary
     ...baseStyle,
     cursor: disabled ? "not-allowed" : "pointer",
     opacity: disabled ? 0.6 : 1,
-    pointerEvents: disabled ? "none" : "auto",
+    pointerEvents: (disabled ? "none" : "auto") as "none" | "auto",
     ...variants[variant],
     ...style
   };

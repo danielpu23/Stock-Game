@@ -3,7 +3,7 @@ interface LayoutProps {
   title?: string;
 }
 
-export default function Layout({ children, title }: LayoutProps) {
+export default function Layout({ children }: LayoutProps) {
   return (
     <div style={{
       minHeight: "100vh",
