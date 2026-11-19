@@ -19,7 +19,7 @@ export default function Navbar() {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-        <Button onClick={() => navigate("/")} variant="primary">
+        <Button onClick={() => navigate("/")} variant="primary" data-testid="menu-btn">
           🏠 Menu
         </Button>
         <h3 style={{ margin: 0, color: "#333", fontSize: "1.5rem" }}>Stock Game</h3>
@@ -30,7 +30,7 @@ export default function Navbar() {
             Welcome, {user.username}
           </span>
         )}
-        <Button onClick={logout} variant="danger">
+        <Button onClick={logout} variant="danger" data-testid="logout-btn">
           Logout
         </Button>
       </div>

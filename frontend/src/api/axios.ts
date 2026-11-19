@@ -1,10 +1,10 @@
 import axios from "axios";
 import { getToken } from "../utils/auth";
 
-// For EC2 deployment, use relative path to connect to same server
-// For local development, use environment variable
+// For local development, use localhost
+// For Cloudflare Tunnel, use environment variable or tunnel URL
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "/api",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080",
   headers: {
     "Content-Type": "application/json",
   },

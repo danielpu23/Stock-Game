@@ -6,9 +6,10 @@ interface InputProps {
   disabled?: boolean;
   min?: number;
   style?: React.CSSProperties;
+  'data-testid'?: string;
 }
 
-export default function Input({ type = "text", placeholder, value, onChange, disabled, min, style }: InputProps) {
+export default function Input({ type = "text", placeholder, value, onChange, disabled, min, style, 'data-testid': dataTestId }: InputProps) {
   return (
     <input
       type={type}
@@ -17,6 +18,7 @@ export default function Input({ type = "text", placeholder, value, onChange, dis
       onChange={onChange}
       disabled={disabled}
       min={min}
+      data-testid={dataTestId}
       style={{
         padding: "0.75rem 1rem",
         border: "1px solid #ced4da",

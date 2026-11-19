@@ -1,6 +1,6 @@
 interface ButtonProps {
   children: React.ReactNode;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
   disabled?: boolean;
   variant?: "primary" | "secondary" | "success" | "danger" | "warning" | "info";
   style?: React.CSSProperties;

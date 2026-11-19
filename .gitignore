@@ -11,3 +11,10 @@ Thumbs.db
 .env
 .env.local
 .env.production
+
+# Cloudflare Tunnel - Local configuration with sensitive data
+cloudflare-tunnel/config.local.yml
+cloudflare-tunnel/*.json
+
+# Local documentation
+PROJECT_CONTEXT.md

@@ -1,0 +1,18 @@
+# Cloudflare Tunnel Configuration for Stock Game
+# This configuration exposes your local application to the internet
+#
+# IMPORTANT: Replace the placeholders below with your actual values
+# Do not commit this file with sensitive information
+
+tunnel: <your-tunnel-id>
+credentials-file: <path-to-credentials.json>
+
+ingress:
+  # Frontend (React development server)
+  - hostname: <your-subdomain>.<your-domain>.com
+    service: http://localhost:5173
+  # Backend API (Spring Boot) - optional, for direct API access
+  - hostname: api.<your-domain>.com
+    service: http://localhost:8080
+  # Catch-all rule
+  - service: http_status:404

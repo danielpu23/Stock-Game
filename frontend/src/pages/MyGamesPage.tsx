@@ -41,28 +41,40 @@ export default function MyGamesPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "WAITING": return "#ffc107";
-      case "IN_PROGRESS": return "#28a745";
-      case "FINISHED": return "#6c757d";
-      default: return "#007bff";
+      case "WAITING":
+        return "#ffc107";
+      case "IN_PROGRESS":
+        return "#28a745";
+      case "FINISHED":
+        return "#6c757d";
+      default:
+        return "#007bff";
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case "WAITING": return "In Lobby";
-      case "IN_PROGRESS": return "In Progress";
-      case "FINISHED": return "Completed";
-      default: return status;
+      case "WAITING":
+        return "In Lobby";
+      case "IN_PROGRESS":
+        return "In Progress";
+      case "FINISHED":
+        return "Completed";
+      default:
+        return status;
     }
   };
 
   const getActionText = (status: string) => {
     switch (status) {
-      case "WAITING": return "Go to Lobby";
-      case "IN_PROGRESS": return "Continue Game";
-      case "FINISHED": return "View Results";
-      default: return "View Game";
+      case "WAITING":
+        return "Go to Lobby";
+      case "IN_PROGRESS":
+        return "Continue Game";
+      case "FINISHED":
+        return "View Results";
+      default:
+        return "View Game";
     }
   };
 
@@ -80,18 +92,29 @@ export default function MyGamesPage() {
   return (
     <Layout>
       <Navbar />
-      <div style={{ padding: "2rem", maxWidth: "1000px", margin: "0 auto", width: "100%" }}>
+      <div
+        style={{
+          padding: "2rem",
+          maxWidth: "1000px",
+          margin: "0 auto",
+          width: "100%",
+        }}
+      >
         <h1 style={{ color: "#333", marginBottom: "2rem" }}>My Games</h1>
-        
+
         {error && <Alert type="error">{error}</Alert>}
-        
+
         {games.length === 0 ? (
           <Card data-testid="empty-state">
             <p style={{ color: "#666", textAlign: "center", padding: "2rem" }}>
               You haven't created any games yet. Start by creating a new game!
             </p>
             <div style={{ textAlign: "center", marginTop: "1rem" }}>
-              <Button onClick={() => navigate("/create")} variant="primary" data-testid="create-first-game-btn">
+              <Button
+                onClick={() => navigate("/create")}
+                variant="primary"
+                data-testid="create-first-game-btn"
+              >
                 Create Your First Game
               </Button>
             </div>
@@ -99,32 +122,68 @@ export default function MyGamesPage() {
         ) : (
           <div style={{ display: "grid", gap: "1rem" }}>
             {games.map((game) => (
-              <div 
-                key={game.id} 
-                data-testid="game-card"
+              <div
+                key={game.id}
                 onClick={() => handleGameClick(game)}
-                onMouseEnter={(e: React.MouseEvent) => (e.currentTarget as HTMLElement).style.transform = "translateX(4px)"}
-                onMouseLeave={(e: React.MouseEvent) => (e.currentTarget as HTMLElement).style.transform = "translateX(0)"}
-                style={{ 
+                onMouseEnter={(e) =>
+                  ((e.currentTarget as HTMLElement).style.transform =
+                    "translateX(4px)")
+                }
+                onMouseLeave={(e) =>
+                  ((e.currentTarget as HTMLElement).style.transform =
+                    "translateX(0)")
+                }
+                style={{
                   cursor: "pointer",
-                  transition: "transform 0.2s ease"
+                  transition: "transform 0.2s ease",
                 }}
               >
-                <Card style={{ 
-                  borderLeft: `4px solid ${getStatusColor(game.status)}`
-                }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <Card
+                  data-testid={`game-card-${game.id}`}
+                  style={{
+                    borderLeft: `4px solid ${getStatusColor(game.status)}`,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
                     <div>
-                      <h3 style={{ margin: "0 0 0.5rem 0", color: "#333" }}>{game.name}</h3>
-                      <div style={{ display: "flex", gap: "1rem", color: "#666", fontSize: "0.9rem" }}>
-                        <span>Code: <strong>{game.inviteCode}</strong></span>
-                        <span>Status: <strong style={{ color: getStatusColor(game.status) }}>
-                          {getStatusText(game.status)}
-                        </strong></span>
+                      <h3 style={{ margin: "0 0 0.5rem 0", color: "#333" }}>
+                        {game.name}
+                      </h3>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "1rem",
+                          color: "#666",
+                          fontSize: "0.9rem",
+                        }}
+                      >
+                        <span>
+                          Code: <strong>{game.inviteCode}</strong>
+                        </span>
+                        <span>
+                          Status:{" "}
+                          <strong
+                            style={{ color: getStatusColor(game.status) }}
+                          >
+                            {getStatusText(game.status)}
+                          </strong>
+                        </span>
                       </div>
+                      <Button
+                        variant="primary"
+                        onClick={() => handleGameClick(game)}
+                      >
+                        {getActionText(game.status)}
+                      </Button>
                     </div>
-                    <Button 
-                      variant="primary" 
+                    <Button
+                      variant="primary"
                       onClick={() => handleGameClick(game)}
                     >
                       {getActionText(game.status)}

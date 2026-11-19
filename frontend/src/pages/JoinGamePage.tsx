@@ -39,10 +39,10 @@ export default function JoinGamePage() {
               </label>
               <Input
                 type="text"
-                data-testid="invite-code-input"
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value)}
                 placeholder="Enter invite code"
+                data-testid="invite-code-input"
               />
             </div>
 

@@ -1,0 +1,13 @@
+# Simple Cloudflare Tunnel Configuration
+# Use this for quick setup without custom domains
+
+tunnel: <your-tunnel-id>
+credentials-file: <your-credentials-file>
+
+ingress:
+  # Backend API (Spring Boot on port 8080)
+  - service: http://localhost:8080
+  # Frontend (React on port 5173) - optional if you want separate frontend
+  - service: http://localhost:5173
+  # Catch-all
+  - service: http_status:404
