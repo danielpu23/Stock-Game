@@ -15,9 +15,12 @@ export function isMarketHours(): boolean {
     return false;
   }
 
-  // Check if time is between 9:30 AM and 4:00 PM (market hours)
+  // Check if time is between market hours: 4:00 AM and 8:00 PM
+  // Pre-market: 4:00 AM - 9:30 AM
+  // Regular: 9:30 AM - 4:00 PM
+  // After-hours: 4:00 PM - 8:00 PM
   const currentTime = hours + minutes / 60;
-  return currentTime >= 9.5 && currentTime < 16.0;
+  return currentTime >= 4.0 && currentTime < 20.0;
 }
 
 // find next open market time
@@ -32,11 +35,11 @@ export function getNextMarketOpen(): Date {
   const currentTime = hours + minutes / 60;
 
   let nextOpen = new Date(easternTime);
-  nextOpen.setHours(9, 30, 0, 0);
+  nextOpen.setHours(4, 0, 0, 0);
 
-  if (currentTime >= 9.5 && currentTime < 16.0) {
+  if (currentTime >= 4.0 && currentTime < 20.0) {
     nextOpen.setDate(nextOpen.getDate() + 1);
-  } else if (currentTime >= 16.0) {
+  } else if (currentTime >= 20.0) {
     nextOpen.setDate(nextOpen.getDate() + 1);
   }
 
@@ -52,7 +55,7 @@ export function getNextMarketOpen(): Date {
 
 export function getMarketStatusMessage(): string {
   if (isMarketHours()) {
-    return "Market is currently open. Trading is available.";
+    return "Market is currently open (extended hours). Trading is available.";
   }
 
   const nextOpen = getNextMarketOpen();
