@@ -165,15 +165,8 @@ export default function GamePage() {
     if (!currentPlayer) return;
 
     try {
-      const currentUser = getUser();
-      const playerSessionId = game?.players.findIndex(
-        (p) => p.username === currentUser?.username,
-      );
-
-      if (playerSessionId !== undefined && playerSessionId >= 0) {
-        const txs = await getTransactions(playerSessionId + 1); // +1 because IDs are 1-based
-        setTransactions(txs);
-      }
+      const txs = await getTransactions(currentPlayer.playerSessionId);
+      setTransactions(txs);
     } catch (error) {
       console.error(error);
     }

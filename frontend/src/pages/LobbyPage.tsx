@@ -85,12 +85,7 @@ export default function LobbyPage() {
 
         <Card title="Players" style={{ marginBottom: "1.5rem" }}>
           <PlayerTable
-            players={game.players.map((player) => ({
-              username: player.username,
-              cashBalance: player.cashBalance,
-              portfolioValue: player.cashBalance,
-              holdings: [],
-            }))}
+            players={game.players}
           />
         </Card>
 

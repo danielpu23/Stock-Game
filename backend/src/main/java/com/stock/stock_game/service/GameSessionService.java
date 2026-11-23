@@ -123,6 +123,7 @@ public class GameSessionService {
                 playerSessions.stream()
                 .map(playerSession -> {
                     PlayerResponse player = new PlayerResponse();
+                    player.setPlayerSessionId(playerSession.getId());
                     player.setUsername(
                         playerSession.getUser().getUsername()
                     );
@@ -172,6 +173,7 @@ public class GameSessionService {
                 playerSessions.stream()
                 .map(playerSession -> {
                     PlayerStateResponse player = new PlayerStateResponse();
+                    player.setPlayerSessionId(playerSession.getId());
                     player.setUsername(
                             playerSession.getUser().getUsername()
                     );

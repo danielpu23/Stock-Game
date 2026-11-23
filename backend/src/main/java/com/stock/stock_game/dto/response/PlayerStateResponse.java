@@ -12,6 +12,8 @@ import java.util.List;
 @Setter
 public class PlayerStateResponse {
 
+    private Long playerSessionId;
+
     private String username;
 
     private BigDecimal cashBalance;

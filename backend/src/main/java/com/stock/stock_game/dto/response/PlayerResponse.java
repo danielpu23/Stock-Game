@@ -9,6 +9,8 @@ import lombok.Setter;
 @Setter
 public class PlayerResponse {
 
+    private Long playerSessionId;
+
     private String username;
 
     private BigDecimal cashBalance;

@@ -13,6 +13,6 @@ public class GameStateResponse {
     private Long gameId;
 
     private SessionStatus status;
-    
+
     private List<PlayerStateResponse> players;
 }

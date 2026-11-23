@@ -16,6 +16,7 @@ export interface GameState {
 }
 
 export interface PlayerState {
+  playerSessionId: number;
   username: string;
   cashBalance: number;
   portfolioValue: number;
