@@ -82,7 +82,7 @@ export default function MyGamesPage() {
     return (
       <Layout>
         <Navbar />
-        <div style={{ padding: "2rem", textAlign: "center" }}>
+        <div className="loading">
           <h2>Loading your games...</h2>
         </div>
       </Layout>
@@ -92,24 +92,17 @@ export default function MyGamesPage() {
   return (
     <Layout>
       <Navbar />
-      <div
-        style={{
-          padding: "2rem",
-          maxWidth: "1000px",
-          margin: "0 auto",
-          width: "100%",
-        }}
-      >
-        <h1 style={{ color: "#333", marginBottom: "2rem" }}>My Games</h1>
+      <div className="container">
+        <h1 className="text-primary mb-8">My Games</h1>
 
         {error && <Alert type="error">{error}</Alert>}
 
         {games.length === 0 ? (
           <Card data-testid="empty-state">
-            <p style={{ color: "#666", textAlign: "center", padding: "2rem" }}>
+            <p className="empty-state">
               You haven't created any games yet. Start by creating a new game!
             </p>
-            <div style={{ textAlign: "center", marginTop: "1rem" }}>
+            <div className="text-center mt-4">
               <Button
                 onClick={() => navigate("/create")}
                 variant="primary"
@@ -120,23 +113,12 @@ export default function MyGamesPage() {
             </div>
           </Card>
         ) : (
-          <div style={{ display: "grid", gap: "1rem" }}>
+          <div className="grid gap-4">
             {games.map((game) => (
               <div
                 key={game.id}
                 onClick={() => handleGameClick(game)}
-                onMouseEnter={(e) =>
-                  ((e.currentTarget as HTMLElement).style.transform =
-                    "translateX(4px)")
-                }
-                onMouseLeave={(e) =>
-                  ((e.currentTarget as HTMLElement).style.transform =
-                    "translateX(0)")
-                }
-                style={{
-                  cursor: "pointer",
-                  transition: "transform 0.2s ease",
-                }}
+                className="clickable"
               >
                 <Card
                   data-testid={`game-card-${game.id}`}
@@ -144,25 +126,12 @@ export default function MyGamesPage() {
                     borderLeft: `4px solid ${getStatusColor(game.status)}`,
                   }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
+                  <div className="flex-between">
                     <div>
-                      <h3 style={{ margin: "0 0 0.5rem 0", color: "#333" }}>
+                      <h3 className="mb-2 text-primary">
                         {game.name}
                       </h3>
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "1rem",
-                          color: "#666",
-                          fontSize: "0.9rem",
-                        }}
-                      >
+                      <div className="flex gap-4 text-sm text-secondary">
                         <span>
                           Code: <strong>{game.inviteCode}</strong>
                         </span>
@@ -175,12 +144,6 @@ export default function MyGamesPage() {
                           </strong>
                         </span>
                       </div>
-                      <Button
-                        variant="primary"
-                        onClick={() => handleGameClick(game)}
-                      >
-                        {getActionText(game.status)}
-                      </Button>
                     </div>
                     <Button
                       variant="primary"

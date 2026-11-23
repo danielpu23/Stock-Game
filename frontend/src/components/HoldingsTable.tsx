@@ -6,7 +6,7 @@ interface HoldingsTableProps {
 
 export default function HoldingsTable({ holdings }: HoldingsTableProps) {
   return (
-    <table>
+    <table className="table">
       <thead>
         <tr>
           <th>Symbol</th>

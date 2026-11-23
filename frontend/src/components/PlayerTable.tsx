@@ -6,7 +6,7 @@ interface PlayerTableProps {
 
 export default function PlayerTable({ players }: PlayerTableProps) {
   return (
-    <table>
+    <table className="table">
       <thead>
         <tr>
           <th>Player</th>
