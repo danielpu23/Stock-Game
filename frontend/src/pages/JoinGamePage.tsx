@@ -30,11 +30,11 @@ export default function JoinGamePage() {
   return (
     <Layout>
       <Navbar />
-      <div style={{ padding: "2rem", maxWidth: "600px", margin: "0 auto", width: "100%" }}>
+      <div className="container-narrow">
         <Card title="Join Game">
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          <div className="form-container">
             <div>
-              <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "500", color: "#333" }}>
+              <label className="label">
                 Invite Code
               </label>
               <Input

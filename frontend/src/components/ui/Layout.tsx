@@ -4,12 +4,7 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   return (
-    <div style={{
-      minHeight: "100vh",
-      backgroundColor: "#f5f7fa",
-      display: "flex",
-      flexDirection: "column"
-    }}>
+    <div className="layout">
       {children}
     </div>
   );

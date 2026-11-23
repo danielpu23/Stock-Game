@@ -13,6 +13,14 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Layout Component */
+.layout {
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  display: flex;
+  flex-direction: column;
+}
+
 /* Layout Utilities */
 .container {
   padding: 2rem;
@@ -113,6 +121,10 @@ body {
 
 .grid-cols-3 {
   grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, 1fr);
 }
 
 /* Text Utilities */
@@ -389,6 +401,46 @@ body {
 .badge-gray {
   background: #6c757d;
   color: white;
+}
+
+/* Winner Card */
+.winner-card {
+  background-color: #fff8e1 !important;
+  border-color: #ffd700 !important;
+}
+
+/* Table Row Highlight */
+.table-row-winner {
+  background-color: #fff8e1;
+}
+
+/* Game Page Styles */
+.game-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.form-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.stock-price-display {
+  font-weight: bold;
+  color: #333;
+}
+
+.input-flex {
+  flex: 1;
+  min-width: 120px;
+}
+
+.input-narrow {
+  width: 100px;
+  flex: 0 0 auto;
 }
 
 /* Button Styles */

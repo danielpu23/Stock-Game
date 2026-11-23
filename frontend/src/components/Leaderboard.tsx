@@ -6,30 +6,30 @@ interface LeaderboardProps {
 
 export default function Leaderboard({ leaderboard }: LeaderboardProps) {
   return (
-    <div style={{ marginTop: "2rem" }}>
+    <div className="mt-8">
       <h3>Leaderboard</h3>
-      <table style={{ borderCollapse: "collapse", width: "100%" }}>
+      <table className="table">
         <thead>
-          <tr style={{ borderBottom: "2px solid #ddd" }}>
-            <th style={{ padding: "8px", textAlign: "left" }}>Rank</th>
-            <th style={{ padding: "8px", textAlign: "left" }}>Username</th>
-            <th style={{ padding: "8px", textAlign: "right" }}>Cash</th>
-            <th style={{ padding: "8px", textAlign: "right" }}>Holdings</th>
-            <th style={{ padding: "8px", textAlign: "right" }}>Total</th>
+          <tr>
+            <th>Rank</th>
+            <th>Username</th>
+            <th className="text-right">Cash</th>
+            <th className="text-right">Holdings</th>
+            <th className="text-right">Total</th>
           </tr>
         </thead>
         <tbody>
           {leaderboard.map((result, index) => (
-            <tr key={index} style={{ borderBottom: "1px solid #ddd" }}>
-              <td style={{ padding: "8px" }}>{index + 1}</td>
-              <td style={{ padding: "8px" }}>{result.username}</td>
-              <td style={{ padding: "8px", textAlign: "right" }}>
+            <tr key={index}>
+              <td>{index + 1}</td>
+              <td>{result.username}</td>
+              <td className="text-right">
                 ${result.cashBalance.toFixed(2)}
               </td>
-              <td style={{ padding: "8px", textAlign: "right" }}>
+              <td className="text-right">
                 ${result.holdingsValue.toFixed(2)}
               </td>
-              <td style={{ padding: "8px", textAlign: "right" }}>
+              <td className="text-right">
                 ${result.totalValue.toFixed(2)}
               </td>
             </tr>

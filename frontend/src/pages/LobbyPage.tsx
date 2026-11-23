@@ -53,7 +53,7 @@ export default function LobbyPage() {
     return (
       <Layout>
         <Navbar />
-        <div style={{ padding: "2rem" }}>
+        <div className="loading">
           <h2>Loading...</h2>
         </div>
       </Layout>
@@ -63,21 +63,21 @@ export default function LobbyPage() {
   return (
     <Layout>
       <Navbar />
-      <div style={{ padding: "2rem", maxWidth: "1200px", margin: "0 auto", width: "100%" }}>
-        <div style={{ marginBottom: "2rem" }}>
-          <h1 style={{ color: "#333", marginBottom: "0.5rem" }}>{game.name}</h1>
-          <p style={{ color: "#666", margin: 0 }}>Lobby</p>
+      <div className="container" style={{ maxWidth: "1200px" }}>
+        <div className="mb-8">
+          <h1 className="text-primary mb-2">{game.name}</h1>
+          <p className="text-secondary" style={{ margin: 0 }}>Lobby</p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1.5rem", marginBottom: "1.5rem" }}>
+        <div className="grid gap-6 mb-6" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}>
           <Card title="Invite Code">
-            <div style={{ fontSize: "2rem", fontWeight: "bold", color: "#007bff", letterSpacing: "2px" }}>
+            <div className="text-2xl font-bold" style={{ color: "#007bff", letterSpacing: "2px" }}>
               {game.inviteCode}
             </div>
           </Card>
 
           <Card title="Game Status">
-            <div style={{ fontSize: "1.25rem", fontWeight: "600", color: "#333" }}>
+            <div className="text-xl font-semibold text-primary">
               {game.status}
             </div>
           </Card>
@@ -107,7 +107,7 @@ export default function LobbyPage() {
             Game has finished. <Button as="a" href={`/games/${GAME_ID}/results`} variant="warning" style={{ padding: "0.25rem 0.5rem", fontSize: "0.85rem", marginLeft: "0.5rem" }}>View results</Button>
           </Alert>
         )}
-        
+
         {game.status === "IN_PROGRESS" && (
           <Alert type="info" style={{ marginTop: "1rem" }}>
             Game is currently in progress. <Button as="a" href={`/games/${GAME_ID}`} variant="info" style={{ padding: "0.25rem 0.5rem", fontSize: "0.85rem", marginLeft: "0.5rem" }}>Join game</Button>

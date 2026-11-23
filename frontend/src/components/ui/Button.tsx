@@ -6,9 +6,10 @@ interface ButtonProps {
   style?: React.CSSProperties;
   as?: "button" | "a";
   href?: string;
+  type?: "button" | "submit";
 }
 
-export default function Button({ children, onClick, disabled, variant = "primary", style, as = "button", href }: ButtonProps) {
+export default function Button({ children, onClick, disabled, variant = "primary", style, as = "button", href, type }: ButtonProps) {
   const className = `btn btn-${variant}`;
 
   if (as === "a" && href) {
@@ -21,6 +22,7 @@ export default function Button({ children, onClick, disabled, variant = "primary
 
   return (
     <button
+      type={type}
       onClick={onClick}
       disabled={disabled}
       className={className}

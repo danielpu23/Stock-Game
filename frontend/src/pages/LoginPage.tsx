@@ -3,6 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { login, register } from "../api/authApi";
 import { setToken, setUser } from "../utils/auth";
 import type { LoginRequest, RegisterRequest } from "../types/auth";
+import Button from "../components/ui/Button";
+import Input from "../components/ui/Input";
+import Card from "../components/ui/Card";
+import Alert from "../components/ui/Alert";
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -46,106 +50,93 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ maxWidth: "400px", margin: "2rem auto", padding: "2rem" }}>
-      <h1>{isLogin ? "Login" : "Register"}</h1>
-      {error && (
-        <div style={{ color: "red", marginBottom: "1rem" }}>{error}</div>
-      )}
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: "1rem" }}>
-          <label htmlFor="username">Username:</label>
-          <input
-            id="username"
-            data-testid="username-input"
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            style={{ width: "100%", padding: "0.5rem", marginTop: "0.25rem" }}
-          />
-        </div>
-        {!isLogin && (
-          <div style={{ marginBottom: "1rem" }}>
-            <label htmlFor="email">Email:</label>
-            <input
-              id="email"
-              data-testid="email-input"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+    <div className="container" style={{ maxWidth: "400px" }}>
+      <Card title={isLogin ? "Login" : "Register"}>
+        {error && <Alert type="error">{error}</Alert>}
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label htmlFor="username" className="label">Username:</label>
+            <Input
+              id="username"
+              data-testid="username-input"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
-              style={{
-                width: "100%",
-                padding: "0.5rem",
-                marginTop: "0.25rem",
-              }}
             />
           </div>
-        )}
-        <div style={{ marginBottom: "1rem" }}>
-          <label htmlFor="password">Password:</label>
-          <input
-            id="password"
-            data-testid="password-input"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={{ width: "100%", padding: "0.5rem", marginTop: "0.25rem" }}
-          />
+          {!isLogin && (
+            <div className="mb-4">
+              <label htmlFor="email" className="label">Email:</label>
+              <Input
+                id="email"
+                data-testid="email-input"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+          )}
+          <div className="mb-4">
+            <label htmlFor="password" className="label">Password:</label>
+            <Input
+              id="password"
+              data-testid="password-input"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <Button
+            type="submit"
+            data-testid="submit-button"
+            variant="primary"
+            style={{ width: "100%" }}
+          >
+            {isLogin ? "Login" : "Register"}
+          </Button>
+        </form>
+        <div className="text-center mt-4">
+          {isLogin ? (
+            <>
+              Don't have an account?{" "}
+              <button
+                type="button"
+                onClick={() => setIsLogin(false)}
+                className="btn-link"
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#007bff",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                }}
+              >
+                Register
+              </button>
+            </>
+          ) : (
+            <>
+              Already have an account?{" "}
+              <button
+                type="button"
+                onClick={() => setIsLogin(true)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#007bff",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                }}
+              >
+                Login
+              </button>
+            </>
+          )}
         </div>
-        <button
-          type="submit"
-          data-testid="submit-button"
-          style={{
-            width: "100%",
-            padding: "0.75rem",
-            backgroundColor: "#007bff",
-            color: "white",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          {isLogin ? "Login" : "Register"}
-        </button>
-      </form>
-      <div style={{ marginTop: "1rem", textAlign: "center" }}>
-        {isLogin ? (
-          <>
-            Don't have an account?{" "}
-            <button
-              type="button"
-              onClick={() => setIsLogin(false)}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#007bff",
-                cursor: "pointer",
-                textDecoration: "underline",
-              }}
-            >
-              Register
-            </button>
-          </>
-        ) : (
-          <>
-            Already have an account?{" "}
-            <button
-              type="button"
-              onClick={() => setIsLogin(true)}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#007bff",
-                cursor: "pointer",
-                textDecoration: "underline",
-              }}
-            >
-              Login
-            </button>
-          </>
-        )}
-      </div>
+      </Card>
     </div>
   );
 }

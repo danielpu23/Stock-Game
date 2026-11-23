@@ -7,12 +7,12 @@ export default function HomePage() {
   return (
     <Layout>
       <Navbar />
-      <div style={{ padding: "2rem", maxWidth: "800px", margin: "0 auto", width: "100%" }}>
+      <div className="container" style={{ maxWidth: "800px" }}>
         <Card>
-          <h1 style={{ color: "#333", marginBottom: "0.5rem" }}>Stock Game</h1>
-          <p style={{ color: "#666", marginBottom: "2rem" }}>Welcome to the Stock Game!</p>
-          
-          <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+          <h1 className="text-primary mb-2">Stock Game</h1>
+          <p className="text-secondary mb-8">Welcome to the Stock Game!</p>
+
+          <div className="flex gap-4" style={{ flexWrap: "wrap" }}>
             <Button as="a" href="/create" variant="primary" data-testid="create-game-btn">Create Game</Button>
             <Button as="a" href="/join" variant="success" data-testid="join-game-btn">Join Game</Button>
             <Button as="a" href="/my-games" variant="secondary" data-testid="my-games-btn">My Games</Button>

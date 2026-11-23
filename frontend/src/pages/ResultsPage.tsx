@@ -26,61 +26,53 @@ export default function ResultsPage() {
   return (
     <Layout>
       <Navbar />
-      <div style={{ padding: "2rem", maxWidth: "800px", margin: "0 auto", width: "100%" }}>
-        <h1 style={{ color: "#333", marginBottom: "2rem" }}>Game Results</h1>
+      <div className="container" style={{ maxWidth: "800px" }}>
+        <h1 className="text-primary mb-8">Game Results</h1>
         {results === null ? (
-          <p style={{ color: "#666" }}>Loading...</p>
+          <p className="text-secondary">Loading...</p>
         ) : (
           <div>
             {results.length > 0 && (
               <>
-                <Card 
-                  title="🏆 Winner" 
-                  style={{ 
-                    marginBottom: "2rem",
-                    backgroundColor: "#fff8e1",
-                    borderColor: "#ffd700"
-                  }}
+                <Card
+                  title="🏆 Winner"
+                  className="winner-card"
+                  style={{ marginBottom: "2rem" }}
                 >
-                  <div style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#333" }}>
+                  <div className="text-2xl font-bold text-primary">
                     {results[0].username}
                   </div>
-                  <div style={{ color: "#666", marginTop: "0.5rem" }}>
+                  <div className="text-secondary mt-2">
                     Total Value: ${results[0].totalValue.toFixed(2)}
                   </div>
                 </Card>
 
                 <Card title="Final Standings">
-                  <table style={{ borderCollapse: "collapse", width: "100%" }}>
+                  <table className="table">
                     <thead>
-                      <tr style={{ borderBottom: "2px solid #ddd" }}>
-                        <th style={{ padding: "12px 8px", textAlign: "left" }}>Rank</th>
-                        <th style={{ padding: "12px 8px", textAlign: "left" }}>Username</th>
-                        <th style={{ padding: "12px 8px", textAlign: "right" }}>Cash</th>
-                        <th style={{ padding: "12px 8px", textAlign: "right" }}>Holdings</th>
-                        <th style={{ padding: "12px 8px", textAlign: "right" }}>Total</th>
+                      <tr>
+                        <th>Rank</th>
+                        <th>Username</th>
+                        <th className="text-right">Cash</th>
+                        <th className="text-right">Holdings</th>
+                        <th className="text-right">Total</th>
                       </tr>
                     </thead>
                     <tbody>
                       {results.map((result, index) => (
-                        <tr 
-                          key={index} 
-                          style={{ 
-                            borderBottom: "1px solid #ddd",
-                            backgroundColor: index === 0 ? "#fff8e1" : "transparent"
-                          }}
+                        <tr
+                          key={index}
+                          className={index === 0 ? "table-row-winner" : ""}
                         >
-                          <td style={{ padding: "12px 8px", fontWeight: "bold" }}>
-                            {index + 1}
-                          </td>
-                          <td style={{ padding: "12px 8px" }}>{result.username}</td>
-                          <td style={{ padding: "12px 8px", textAlign: "right" }}>
+                          <td className="font-bold">{index + 1}</td>
+                          <td>{result.username}</td>
+                          <td className="text-right">
                             ${result.cashBalance.toFixed(2)}
                           </td>
-                          <td style={{ padding: "12px 8px", textAlign: "right" }}>
+                          <td className="text-right">
                             ${result.holdingsValue.toFixed(2)}
                           </td>
-                          <td style={{ padding: "12px 8px", textAlign: "right", fontWeight: "bold" }}>
+                          <td className="text-right font-bold">
                             ${result.totalValue.toFixed(2)}
                           </td>
                         </tr>
@@ -89,7 +81,7 @@ export default function ResultsPage() {
                   </table>
                 </Card>
 
-                <div style={{ marginTop: "2rem" }}>
+                <div className="mt-8">
                   <Button as="a" href="/" variant="primary">
                     Back to Menu
                   </Button>
