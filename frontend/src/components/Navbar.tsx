@@ -7,26 +7,16 @@ export default function Navbar() {
   const navigate = useNavigate();
 
   return (
-    <nav
-      style={{
-        backgroundColor: "white",
-        padding: "1rem 2rem",
-        borderBottom: "2px solid #e0e0e0",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.05)"
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+    <nav className="navbar">
+      <div className="flex gap-4">
         <Button onClick={() => navigate("/")} variant="primary" data-testid="menu-btn">
           🏠 Menu
         </Button>
-        <h3 style={{ margin: 0, color: "#333", fontSize: "1.5rem" }}>Stock Game</h3>
+        <h3 className="navbar-brand">Stock Game</h3>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+      <div className="flex gap-4">
         {user && (
-          <span style={{ fontWeight: "600", color: "#555", fontSize: "1rem" }}>
+          <span className="font-semibold text-secondary">
             Welcome, {user.username}
           </span>
         )}

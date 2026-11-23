@@ -534,3 +534,20 @@ body {
   color: #0c5460;
   border-color: #bee5eb;
 }
+
+/* Navbar Styles */
+.navbar {
+  background-color: white;
+  padding: 1rem 2rem;
+  border-bottom: 2px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.navbar-brand {
+  margin: 0;
+  color: #333;
+  font-size: 1.5rem;
+}
